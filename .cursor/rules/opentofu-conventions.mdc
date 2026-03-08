@@ -1,0 +1,46 @@
+---
+description: Convenciones de OpenTofu para el proyecto xancloud-iac
+globs: ["**/*.tf", "**/*.tfvars", "**/*.hcl"]
+alwaysApply: false
+---
+
+# Convenciones OpenTofu — xancloud-iac
+
+## Herramienta
+- El tool es `tofu`, NUNCA `terraform`. Todos los comandos y referencias usan OpenTofu.
+- OpenTofu >= 1.11. AWS Provider >= 5.x. Checkov >= 3.2.x.
+
+## State Backend
+- S3 con `use_lockfile = true`. Sin DynamoDB. Nunca.
+
+## Estructura de módulos
+Cada módulo DEBE tener: main.tf, variables.tf, outputs.tf, versions.tf, locals.tf, README.md, examples/, tests/
+
+## Variables
+- Siempre con `type`, `description`, y `validation` blocks donde aplique.
+- Nunca hardcodear valores que deban ser configurables.
+
+## Tags obligatorios
+Todos los recursos DEBEN tener estos tags:
+- Environment (dev/staging/prod)
+- Project (ej: xancloud-landing)
+- Owner (ej: platform-team)
+- ManagedBy = "opentofu"
+- CostCenter (ej: CC-001)
+
+Implementar tags via `locals.tf` con merge de tags base + tags custom.
+
+## Naming
+Convención: `{project}-{env}-{vpc_key}-{service}-{resource}`
+
+## Seguridad
+- Encriptación at-rest obligatoria en todos los recursos que la soporten.
+- IAM: least privilege. Nunca `*` en actions o resources sin justificación.
+- Provider versions con `~>` constraint.
+- Servicios de seguridad con `enabled = false` por defecto (excepto CloudTrail).
+
+## Lo que NO hacer
+- No proponer Terraform Cloud, Sentinel, o features exclusivas de Terraform.
+- No usar DynamoDB para state locking.
+- No generar código sin tags obligatorios.
+- No asumir multi-account (eso es Fase 2).

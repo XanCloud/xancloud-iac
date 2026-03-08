@@ -1,0 +1,37 @@
+---
+description: Contexto general del proyecto xancloud-iac
+alwaysApply: true
+---
+
+# Contexto — xancloud-iac
+
+## Qué es
+Acelerador de consultoría IaC. Landing zone AWS opinada con OpenTofu.
+
+## Fase activa
+Fase 1 — MVP Landing Zone (Capa 0). No trabajar en fases futuras a menos que se pida.
+
+## Stack
+- IaC: OpenTofu >= 1.11
+- Cloud: AWS (primaria, single account en MVP)
+- CI/CD: GitHub Actions (OIDC auth, nunca secrets estáticos)
+- Policy: Checkov >= 3.2.x + OPA/Rego
+- Testing: tofu test + Terratest
+- Registry: GitHub Releases (público) + OCI/ECR (clientes)
+
+## Branching
+- GitHub Flow. `main` siempre deployable.
+- Branches: `feature/*` y `fix/*` con PR a main.
+- Entornos (dev/staging/prod) NO son branches. Son triggers del pipeline con diferentes tfvars.
+- Versionamiento de módulos: Git tags semánticos.
+
+## Formato de respuesta
+- Directo. Sin preámbulos.
+- Code reviews: 🔴 Critical, 🟡 Important, 🔵 Improvement.
+- No explicar conceptos básicos de AWS, IaC, Kubernetes, Docker.
+
+## Documentación de referencia
+- `docs/PROJECT_v0.1.0.md` — Visión, estructura, convenciones
+- `docs/PHASE-1_v0.1.0.md` — Detalle del MVP
+- `docs/DECISIONS_v0.1.0.md` — Decisiones de diseño con trade-offs
+- `docs/RISKS_v0.1.0.md` — Riesgos y mitigaciones

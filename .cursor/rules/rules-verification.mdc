@@ -1,0 +1,43 @@
+---
+description: "Verificación de que las rules en .cursor/rules están bien formadas y enfocadas solo en xancloud-iac"
+globs: ".cursor/rules/**/*.mdc"
+alwaysApply: false
+---
+
+# Verificación de rules — .cursor/rules
+
+Cuando se pida **verificar**, **auditar**, **revisar** o **validar** las rules de `.cursor/rules`, o cuando se editen archivos en esta carpeta, aplicar este checklist.
+
+## 1. Formato y frontmatter
+
+- Archivo con extensión `.mdc` en `.cursor/rules/`.
+- Frontmatter YAML válido con:
+  - `description`: string breve (qué hace la rule).
+  - `alwaysApply`: `true` o `false`.
+  - `globs`: si `alwaysApply: false`, debe haber al menos un patrón que apunte a rutas **de este repo** (`modules/**`, `blueprints/**`, `.github/workflows/**`, `policies/**`, `**/*.tftest.hcl`, etc.). Si `alwaysApply: true`, `globs` puede omitirse o ir vacío.
+- Contenido en markdown, preferiblemente &lt; 500 líneas y &lt; 50 líneas por sección cuando sea posible.
+- Sin placeholders tipo "completar después" salvo que sea un template explícito.
+
+## 2. Enfoque solo en este proyecto
+
+Cada rule debe ser **exclusiva de xancloud-iac**. Comprobar:
+
+- **Referencias al proyecto**: mención a xancloud-iac, OpenTofu (no Terraform), stack del proyecto (AWS, GitHub Actions, Checkov, OPA), o rutas/artefactos del repo (`docs/`, `modules/`, `blueprints/`, `policies/`, skills en `.cursor/skills/`).
+- **Sin contenido genérico reutilizable**: si la rule sirve igual para cualquier repo Terraform/OpenTofu sin cambiar nada, no está enfocada en este proyecto; debe referir convenciones, decisiones o estructura de xancloud-iac.
+- **Consistencia con decisiones**: no debe contradecir `docs/DECISIONS_v0.1.0.md` (p. ej. no Terraform Cloud, no DynamoDB, no Sentinel, binario `tofu`).
+
+## 3. Acción al encontrar problemas
+
+- **Frontmatter mal formado o globs incoherentes**: proponer el YAML corregido.
+- **Rule genérica**: indicar qué añadir (referencias a docs/, skills, convenciones del proyecto) para anclarla a xancloud-iac.
+- **Contradicción con DECISIONS**: citar la decisión y sugerir el ajuste en la rule.
+
+## Resumen
+
+| Criterio | Comprobar |
+|----------|-----------|
+| Formato | .mdc, frontmatter válido, description + alwaysApply + globs coherentes |
+| Tamaño | Contenido razonable, sin bloques enormes |
+| Proyecto | Referencias a xancloud-iac, OpenTofu, rutas/artefactos del repo |
+| No genérico | No aplicable tal cual a cualquier otro repo |
+| Decisiones | Alineado con docs/DECISIONS_v0.1.0.md |

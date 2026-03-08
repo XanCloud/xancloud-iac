@@ -1,0 +1,25 @@
+---
+description: "Convenciones de testing para xancloud-iac"
+globs:
+  - "**/*.tftest.hcl"
+  - "tests/**/*.go"
+alwaysApply: false
+---
+
+# Testing — Convenciones
+
+Consulta el skill `xancloud-iac-testing` en `.cursor/skills/` para patrones completos.
+
+## Quick reference
+
+### tofu test (.tftest.hcl)
+- `mock_provider "aws" {}` siempre en tests unitarios
+- `command = plan` por defecto (no apply)
+- Variables comunes siempre: environment, project, owner, cost_center
+- Tests de validation con `expect_failures`
+
+### Terratest (Go)
+- `TerraformBinary: "tofu"` siempre
+- `defer terraform.Destroy()` siempre
+- Tests corren contra `examples/simple/` del módulo
+- `t.Parallel()` para ejecución paralela

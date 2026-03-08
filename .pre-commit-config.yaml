@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/tofuutils/pre-commit-opentofu
+    rev: v2.1.0
+    hooks:
+      - id: tofu_fmt
+      - id: tofu_validate
+      - id: tofu_docs
+        args:
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=true
+      - id: tofu_checkov
+        args:
+          - --args=--quiet
+          - --args=--compact

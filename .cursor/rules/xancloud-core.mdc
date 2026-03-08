@@ -1,0 +1,54 @@
+---
+description: "Convenciones core del proyecto xancloud-iac. Aplica siempre."
+globs:
+alwaysApply: true
+---
+
+# xancloud-iac — Project Rules
+
+## Proyecto
+
+xancloud-iac es un acelerador de consultoría IaC basado en OpenTofu para AWS. Los knowledge files en `docs/` contienen el contexto completo: visión, fases, decisiones de diseño, riesgos y convenciones. Léelos antes de responder cualquier pregunta relacionada con el proyecto.
+
+## Reglas de trabajo
+
+### Contexto obligatorio
+- Antes de generar código, revisar los knowledge files relevantes en `docs/` (PROJECT, PHASE activa, DECISIONS).
+- No proponer soluciones que contradigan las decisiones documentadas en `docs/DECISIONS_v0.1.0.md` sin señalarlo explícitamente.
+- La fase activa es Fase 1 (MVP Landing Zone). No trabajar en entregables de fases futuras a menos que se pida explícitamente.
+
+### Código HCL (OpenTofu)
+- El tool es `tofu`, no `terraform`. Todos los comandos, docs y referencias usan OpenTofu.
+- OpenTofu >= 1.11. AWS Provider >= 5.x. Checkov >= 3.2.x.
+- State backend: S3 con `use_lockfile = true`. Sin DynamoDB.
+- Cada módulo sigue la estructura: main.tf, variables.tf, outputs.tf, versions.tf, locals.tf, README.md, examples/, tests/.
+- Variables siempre con type, description, y validation blocks donde aplique.
+- Todos los recursos deben tener los tags obligatorios: Environment, Project, Owner, ManagedBy, CostCenter.
+- Naming: `{project}-{env}-{service}-{resource}`.
+- Encriptación at-rest obligatoria en todos los recursos que la soporten.
+- IAM: least privilege. Nunca `*` en actions o resources sin justificación documentada.
+- Provider versions con `~>` constraint.
+- Servicios de seguridad (GuardDuty, SecurityHub, Config) con `enabled = false` por defecto. CloudTrail es la excepción (enabled = true).
+
+### CI/CD
+- GitHub Actions. Auth con OIDC, nunca secrets estáticos.
+- Checkov como quality gate bloqueante en PRs.
+- Apply en prod requiere aprobación manual.
+
+### Formato de respuesta
+- Directo. Sin preámbulos innecesarios.
+- Si se pide código, dar el código. Si hay un trade-off, mencionarlo en 1-2 líneas.
+- Code reviews con severity: 🔴 Critical, 🟡 Important, 🔵 Improvement.
+- No explicar qué es OpenTofu, AWS, Terraform, Kubernetes, Docker, o conceptos que ya domino.
+
+### Knowledge files
+- Los archivos de contexto llevan versión en el nombre (ej: PROJECT_v0.1.0.md).
+- Cuando se actualice un knowledge file, generar la nueva versión con el número incrementado.
+
+### Qué NO hacer
+- No proponer Terraform Cloud, Sentinel, o features exclusivas de Terraform que no estén en OpenTofu.
+- No usar DynamoDB para state locking.
+- No generar código sin tags obligatorios.
+- No asumir multi-account hasta que se inicie Fase 2.
+- No expandir explicaciones a menos que se pida "más detalle".
+- No resumir al final de la respuesta.

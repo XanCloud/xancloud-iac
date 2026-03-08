@@ -1,0 +1,21 @@
+---
+description: "Convenciones de pipelines CI/CD para xancloud-iac"
+globs:
+  - ".github/workflows/**/*.yml"
+  - ".github/workflows/**/*.yaml"
+alwaysApply: false
+---
+
+# Pipelines CI/CD — Convenciones
+
+Consulta el skill `xancloud-iac-pipeline` en `.cursor/skills/` para patrones completos.
+
+## Quick reference
+
+- Binario: `tofu` (nunca `terraform`)
+- Setup action: `opentofu/setup-opentofu@v1` (nunca `hashicorp/setup-terraform`)
+- Auth: OIDC exclusivo (`aws-actions/configure-aws-credentials@v4` con `role-to-assume`). Nunca access keys estáticos.
+- Checkov: `soft_fail: false` (bloqueante)
+- Apply en prod: requiere GitHub Environment con approval manual
+- Concurrency groups en todos los workflows
+- Cache de plugins OpenTofu
