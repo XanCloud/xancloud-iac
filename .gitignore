@@ -1,39 +1,27 @@
-# OpenTofu / Terraform
+# OpenTofu
 .terraform/
 .tofu/
 *.tfstate
 *.tfstate.*
-*.tfstate.backup
-crash.log
-crash.*.log
+*.tfplan
+.terraform.lock.hcl
+
+# Override files
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-.terraformrc
-terraform.rc
-.terraform.lock.hcl
 
-# IDE
-.idea/
-*.swp
-*.swo
-.vscode/
-!.vscode/settings.json
-!.vscode/extensions.json
+# Credentials
+*.tfvars.secret
+.env
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Secrets
-*.pem
-*.key
-.env
-.env.*
-
-# Python (Checkov, scripts)
-__pycache__/
-*.pyc
-.venv/
-venv/
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

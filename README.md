@@ -1,37 +1,39 @@
 # xancloud-iac
 
-Acelerador de consultoría IaC — Landing Zone AWS con OpenTofu.
+Consulting accelerator for AWS Infrastructure as Code based on **OpenTofu** (not Terraform). Provides reusable modules and a landing-zone blueprint to bootstrap secure, auditable multi-account/multi-environment setups.
 
-## Qué resuelve
+## What it solves
 
-Reduce el despliegue de infraestructura AWS de semanas a horas usando módulos pre-probados, blueprints opinados y pipelines CI/CD listos.
+- **Consistency**: Same patterns (state, networking, security, identity) across engagements.
+- **Speed**: Pre-built modules and one blueprint reduce time to first deploy.
+- **Compliance**: CloudTrail, IAM baseline, S3 block public access, IMDSv2-ready defaults.
+- **Portability**: OpenTofu + standard HCL; no Terraform-specific lock-in.
 
 ## Stack
 
-- **IaC:** OpenTofu >= 1.11
-- **Cloud:** AWS (primaria)
-- **CI/CD:** GitHub Actions
-- **Policy:** Checkov >= 3.2.x + OPA/Rego
-- **Testing:** tofu test + Terratest
-- **Registry:** GitHub Releases (público) + OCI/ECR (clientes)
+| Layer    | Technology                    |
+|----------|-------------------------------|
+| IaC      | OpenTofu ≥ 1.11               |
+| Cloud    | AWS (primary)                 |
+| CI/CD    | GitHub Actions (Phase 2+)     |
+| Policy   | Checkov ≥ 3.2.x + OPA/Rego (Phase 2+) |
+| Testing  | `tofu test` + Terratest (Phase 2+)   |
 
-## Arquitectura
+## Architecture (high level)
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                  Landing Zone                    │
 │                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
-│  │   VPC    │  │   VPC    │  │   VPC    │ ...N  │
-│  │  (dev)   │  │(staging) │  │  (prod)  │      │
-│  └──────────┘  └──────────┘  └──────────┘      │
+│  ┌──────────┐  ┌──────────┐                     │
+│  │   VPC    │  │   VPC    │  ...N               │
+│  │  (dev)   │  │  (prod)  │                     │
+│  └──────────┘  └──────────┘                     │
 │                                                  │
 │  ┌──────────────────────────────────────────┐   │
-│  │  IAM Identity Center (SSO)               │   │
-│  │  CloudTrail │ GuardDuty* │ SecurityHub*  │   │
-│  │  AWS Config* │ S3 Block Public Access    │   │
+│  │  IAM Baseline │ CloudTrail               │   │
+│  │  S3 Block Public Access │ IMDSv2         │   │
 │  └──────────────────────────────────────────┘   │
-│  * enabled = false por defecto                   │
 │                                                  │
 │  ┌──────────────────────────────────────────┐   │
 │  │  State: S3 + KMS (use_lockfile)          │   │
@@ -39,72 +41,65 @@ Reduce el despliegue de infraestructura AWS de semanas a horas usando módulos p
 └─────────────────────────────────────────────────┘
 ```
 
-## Estructura
+## Repository structure
 
 ```
 xancloud-iac/
-├── modules/              # Módulos reutilizables (el producto)
-│   ├── networking/vpc/
-│   ├── security/         # guardduty, securityhub, config-rules, cloudtrail
-│   ├── identity/         # sso, iam-baseline
+├── modules/           # Reusable OpenTofu modules
 │   ├── state-backend/
-│   └── operations/       # monitoring, cost-mgmt
-├── blueprints/           # Composiciones opinadas
+│   ├── networking/vpc/
+│   ├── security/cloudtrail/
+│   └── identity/iam-baseline/
+├── blueprints/        # Composed solutions
 │   └── landing-zone-basic/
-├── environments/         # tfvars por entorno
+├── environments/      # Environment-specific roots (dev, prod)
 │   ├── dev/
-│   ├── staging/
 │   └── prod/
-├── .github/workflows/    # CI/CD
-├── tests/                # tofu test + Terratest
-├── policies/             # Checkov + OPA
-├── docs/                 # Contexto del proyecto
-│   ├── PROJECT.md        # Visión general
-│   ├── PHASE-1.md        # MVP Landing Zone
-│   ├── PHASE-2.md        # Multi-account
-│   ├── PHASE-3.md        # Blueprints de workload
-│   ├── PHASE-4.md        # Operaciones Día 2
-│   ├── PHASE-5.md        # Producto
-│   ├── DECISIONS.md      # ADRs (Architecture Decision Records)
-│   └── RISKS.md          # Riesgos y mitigaciones
-└── templates/            # Scaffold para nuevos clientes
+├── docs/              # Project spec, phases, decisions, risks
+└── .github/           # PR/issue templates
 ```
 
-## Pre-requisitos
+## Prerequisites
 
-- OpenTofu >= 1.11 instalado
-- AWS CLI configurado con credenciales (SSO o access keys para dev)
-- GitHub account con acceso a la org XanCloud
+- **OpenTofu** ≥ 1.11.0 (`tofu` binary; not `terraform`)
+- **AWS Provider** ~> 5.0
+- AWS credentials (env vars, profile, or IRSA) for the target account(s)
 
-## Uso rápido
+## Quick start
 
 ```bash
-# 1. Bootstrap del state backend (solo la primera vez, manual)
-cd modules/state-backend
-tofu init
-tofu apply
+# Clone and enter repo
+git clone <repo-url> xancloud-iac && cd xancloud-iac
 
-# 2. Desplegar landing zone en dev
-cd blueprints/landing-zone-basic
-tofu init -backend-config=../../environments/dev/backend.hcl
-tofu plan -var-file=../../environments/dev/terraform.tfvars
-tofu apply
+# Install pre-commit (optional)
+pre-commit install
+
+# Validate (once modules have .tf)
+cd modules/state-backend && tofu init -backend=false && tofu validate
 ```
 
-## Inputs / Outputs
+Module and blueprint implementation will be added in subsequent commits. See [docs/](docs/) for full project context.
 
-<!-- BEGIN_TF_DOCS -->
-<!-- END_TF_DOCS -->
+## Project status
 
-## Estado del proyecto
+- [x] Technical spec approved
+- [ ] **Phase 0:** Validation + Go-to-Market (active)
+- [ ] **Phase 1:** Minimum Viable Product (active)
+- [ ] Phase 2: Industrialization (requires first client)
+- [ ] Phase 3: Scale or Pivot (requires real data)
 
-- [x] Especificación técnica aprobada
-- [ ] **Fase 1:** MVP Landing Zone (en curso)
-- [ ] Fase 2: Multi-account
-- [ ] Fase 3: Blueprints de workload
-- [ ] Fase 4: Operaciones Día 2
-- [ ] Fase 5: Producto
+## Documentation
 
-## Contribuir
+| Document   | Description                    |
+|-----------|---------------------------------|
+| [docs/PROJECT.md](docs/PROJECT.md) | Project overview and scope   |
+| [docs/PHASE-0.md](docs/PHASE-0.md) | Validation & go-to-market   |
+| [docs/PHASE-1.md](docs/PHASE-1.md) | MVP (modules + blueprint)   |
+| [docs/PHASE-2.md](docs/PHASE-2.md) | Industrialization           |
+| [docs/PHASE-3.md](docs/PHASE-3.md) | Scale or pivot              |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs and key decisions |
+| [docs/RISKS.md](docs/RISKS.md) | Risks and mitigations       |
 
-Ver [docs/](docs/) para contexto completo del proyecto, decisiones de diseño y roadmap por fases.
+## License
+
+[Apache License 2.0](LICENSE). Copyright 2026 XanCloud.
