@@ -25,3 +25,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Cursor (local only, never in public repo)
+.cursor/
