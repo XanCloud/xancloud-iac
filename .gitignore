@@ -1,10 +1,11 @@
-# OpenTofu
+# OpenTofu / Terraform
 .terraform/
 .tofu/
 *.tfstate
-*.tfstate.*
+*.tfstate.backup
 *.tfplan
 .terraform.lock.hcl
+crash.log
 
 # Override files
 override.tf
@@ -12,9 +13,12 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Credentials
+# Credentials / secrets (nunca en repo)
 *.tfvars.secret
+*.pem
+*.key
 .env
+.env.local
 
 # OS
 .DS_Store
