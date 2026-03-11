@@ -32,3 +32,7 @@ Thumbs.db
 
 # Cursor (local only, never in public repo)
 .cursor/
+
+# Claude Code (local only, never in public repo)
+.claude/
+CLAUDE.md
