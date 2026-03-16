@@ -50,18 +50,6 @@ variable "allowed_roles" {
   default     = []
 }
 
-variable "enable_replication" {
-  type        = bool
-  description = "Enable cross-region S3 replication for the state bucket"
-  default     = false
-}
-
-variable "replication_region" {
-  type        = string
-  description = "Destination AWS region for cross-region replication. Required when enable_replication is true."
-  default     = null
-}
-
 variable "kms_deletion_window" {
   type        = number
   description = "Number of days to wait before deleting the KMS key after it is scheduled for deletion"

@@ -51,8 +51,6 @@ terraform {
 | `extra_tags` | `map(string)` | `{}` | Additional tags merged with common tags |
 | `bucket_name` | `string` | — | S3 bucket name (3-63 chars, lowercase alphanumeric + hyphens) |
 | `allowed_roles` | `list(string)` | `[]` | IAM role ARNs authorized to access state. Empty = root only. |
-| `enable_replication` | `bool` | `false` | Enable cross-region S3 replication |
-| `replication_region` | `string` | `null` | Destination region for replication (required if enabled) |
 | `kms_deletion_window` | `number` | `30` | Days before KMS key deletion (7–30) |
 | `noncurrent_version_transitions_days` | `number` | `90` | Days before moving old versions to Glacier |
 | `noncurrent_version_expiration_days` | `number` | `365` | Days before deleting old versions |
@@ -86,6 +84,6 @@ terraform {
 ## Notes
 
 - State locking uses native S3 (`use_lockfile = true`). No DynamoDB required. Requires OpenTofu >= 1.10.
-- Cross-region replication is disabled by default. When enabled, a second AWS provider aliased `replication` must be configured in the calling module.
+- Cross-region replication is not included in the current version. It will be added when a client requires it.
 - `force_destroy = false` — bucket deletion is protected. Remove state files manually before destroying.
 - KMS key rotation is enabled by default (annual). Existing state files remain readable after rotation.
