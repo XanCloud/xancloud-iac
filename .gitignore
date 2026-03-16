@@ -33,6 +33,8 @@ Thumbs.db
 # Cursor (local only, never in public repo)
 .cursor/
 
-# Claude Code (local only, never in public repo)
+# Claude Code — local only (personal config, never in repo)
+.claude/settings.local.json
+.claude/CLAUDE.md
+.claude/CLAUDE.local.md
 .claude/
-CLAUDE.md
