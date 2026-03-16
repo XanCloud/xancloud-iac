@@ -15,7 +15,7 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 ## ADR-002: AWS como cloud principal
 
 - **Contexto**: Proyecto orientado a consultoría AWS; MVP acotado a un proveedor.
-- **Decisión**: AWS como única nube en el MVP. AWS Provider ~> 5.0.
+- **Decisión**: AWS como única nube en el MVP. AWS Provider ~> 6.0.
 - **Consecuencias**: Patrones (IAM, S3, KMS, CloudTrail) son específicos de AWS. Multi-cloud sería fase posterior.
 
 ---
@@ -31,8 +31,8 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 ## ADR-004: State remoto S3 + KMS + lockfile
 
 - **Contexto**: State debe estar cifrado y bloqueado para trabajo en equipo.
-- **Decisión**: Módulo state-backend con S3, DynamoDB (lock), KMS. Uso de `use_lockfile` donde el provider/versión lo permita.
-- **Consecuencias**: Primer despliegue puede ser bootstrap manual o script; el resto de entornos usan backend remoto.
+- **Decisión**: Módulo state-backend con S3 + KMS. Locking nativo S3 con `use_lockfile = true` (OpenTofu >= 1.10). Sin DynamoDB.
+- **Consecuencias**: Bootstrap manual con local state, luego migración a S3. Replicación cross-region no incluida en MVP — se agrega por demanda.
 
 ---
 

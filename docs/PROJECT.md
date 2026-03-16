@@ -9,7 +9,7 @@ Acelerador de consultoría IaC basado en **OpenTofu** (no Terraform) para AWS. P
 - **4 módulos**: state-backend, networking/vpc, security/cloudtrail, identity/iam-baseline.
 - **1 blueprint**: landing-zone-basic (orquesta los módulos).
 - **Entornos**: dev, prod (estructura bajo `environments/`).
-- **Binario**: `tofu` (OpenTofu ≥ 1.11.0). AWS Provider ~> 5.0.
+- **Binario**: `tofu` (OpenTofu ≥ 1.11.0). AWS Provider ~> 6.0.
 
 ## Qué resuelve
 
