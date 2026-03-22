@@ -38,3 +38,7 @@ Thumbs.db
 .claude/CLAUDE.md
 .claude/CLAUDE.local.md
 .claude/
+
+# KiloCode Local
+.kilocode/
+.kilocodemodes
