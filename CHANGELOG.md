@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Module `networking/vpc`: Multi-VPC with public/private subnets, NAT GWs, route tables, VPC endpoints (gateway + interface), flow logs to CloudWatch or S3
 - Module `state-backend`: S3 + KMS for remote state (bootstrap-first, native S3 locking)
 - Initial project scaffold with directory structure
 - Project documentation (PROJECT.md, phases, decisions, risks)
