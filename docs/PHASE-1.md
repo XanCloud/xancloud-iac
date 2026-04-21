@@ -6,7 +6,7 @@ Entregar un conjunto mínimo de módulos OpenTofu y un blueprint de landing zone
 
 ## Módulos (4)
 
-1. **state-backend**: S3 + DynamoDB (lock) + KMS para state remoto. Uso de `use_lockfile` donde aplique.
+1. **state-backend**: S3 + KMS para state remoto con native locking (`use_lockfile = true`). Sin DynamoDB.
 2. **networking/vpc**: VPC con subnets públicas/privadas, NAT, flujo estándar para dev/prod.
 3. **security/cloudtrail**: Trail con cifrado, integración S3/CloudWatch según especificación.
 4. **identity/iam-baseline**: Políticas base (S3 block public access, IMDSv2, etc.) y roles mínimos.

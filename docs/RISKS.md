@@ -14,7 +14,7 @@ Registro de riesgos identificados y medidas de mitigación.
 ## R2: Cambios de breaking en AWS Provider o OpenTofu
 
 - **Impacto**: Plan/apply fallidos o comportamientos no esperados.
-- **Mitigación**: Fijar versiones (OpenTofu ≥ 1.11, AWS ~> 5.0). Lockfile en repo. Probar upgrades en entorno dev antes de prod.
+- **Mitigación**: Fijar versiones (OpenTofu ≥ 1.11, AWS ~> 6.0). Lockfile en repo. Probar upgrades en entorno dev antes de prod.
 
 ---
 
