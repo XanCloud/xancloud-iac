@@ -30,6 +30,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Scratch / experiments — never in repo
+scratch/
+
 # Cursor (local only, never in public repo)
 .cursor/
 
