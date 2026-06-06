@@ -9,7 +9,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
   <a href="https://opentofu.org"><img src="https://img.shields.io/badge/OpenTofu-%3E%3D1.11-blueviolet?logo=opentofu" alt="OpenTofu"></a>
   <a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/cloud-AWS-FF9900?logo=amazonwebservices" alt="AWS"></a>
-  <img src="https://img.shields.io/badge/status-Phase%201%20MVP-yellow" alt="Status">
+  <img src="https://img.shields.io/badge/status-MVP%20%7C%20v0.1.0-yellow" alt="Status">
+  <img src="https://img.shields.io/badge/phase-1%20complete-brightgreen" alt="Phase 1">
 </p>
 
 ---
@@ -21,44 +22,72 @@
 - **Hours, not months** — A single `tofu apply` deploys a secure AWS foundation with VPC, IAM hardening, CloudTrail, and encrypted state.
 - **OpenTofu-first** — MPL 2.0 license, native state encryption, S3 locking without DynamoDB. No vendor lock-in.
 - **Opinionated defaults** — Every resource is encrypted at rest, tagged, and follows AWS Well-Architected. Zero manual configuration.
-- **Built for LATAM SMBs** — Transparent pricing, compliance-ready modules, documentation in Spanish and English.
+- **Built for LATAM SMBs** — Documentation in Spanish and English. Transparent pricing, compliance-ready modules.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│                   Landing Zone                   │
-│                                                  │
-│  ┌───────────┐  ┌───────────┐                    │
-│  │    VPC    │  │    VPC    │  ...N              │
-│  │   (dev)   │  │  (prod)   │                    │
-│  └───────────┘  └───────────┘                    │
-│                                                  │
-│  ┌──────────────────────────────────────────────┐    │
-│  │  IAM Baseline  ·  CloudTrail             │    │
-│  │  S3 Block Public Access  ·  IMDSv2       │    │
-│  └──────────────────────────────────────────────┘    │
-│                                                  │
-│  ┌──────────────────────────────────────────────┐    │
-│  │  State: S3 + KMS  (use_lockfile)         │    │
-│  └──────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                    Landing Zone                      │
+│                                                     │
+│  ┌─────────────┐  ┌─────────────┐                   │
+│  │    VPC      │  │    VPC      │  ...N             │
+│  │   (dev)     │  │  (prod)     │                   │
+│  └─────────────┘  └─────────────┘                   │
+│                                                     │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  IAM Baseline  ·  CloudTrail  ·  IMDSv2        │ │
+│  │  S3 Block Public Access  ·  Access Analyzer    │ │
+│  └─────────────────────────────────────────────────┘ │
+│                                                     │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  State: S3 + KMS  (native lockfile, no DynamoDB)│ │
+│  └─────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## Quick start
 
 ```bash
+# Prerequisites
+tofu --version            # == 1.11+
+aws sts get-caller-identity
+
 # 1 — Bootstrap state backend (first time only)
-cd modules/state-backend && tofu init && tofu apply
+cd modules/state-backend
+
+CALLER_ARN=$(aws sts get-caller-identity --query Arn --output text)
+cat > terraform.tfvars <<EOF
+project       = "xancloud"
+environment   = "dev"
+bucket_name   = "xancloud-dev-tfstate-$(aws sts get-caller-identity --query Account --output text)"
+allowed_roles = ["${CALLER_ARN}"]
+EOF
+
+tofu init && tofu apply
 
 # 2 — Deploy landing zone
 cd blueprints/landing-zone-basic
-tofu init -backend-config=../../environments/dev/backend.hcl
-tofu plan -var-file=../../environments/dev/terraform.tfvars
-tofu apply
+cp ../../environments/dev/terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars — set region to match your AWS profile
+
+tofu init -backend-config=examples/backend-dev.hcl
+tofu plan && tofu apply
 ```
 
-> **Prerequisites:** [OpenTofu >= 1.11](https://opentofu.org/docs/intro/install) · AWS CLI configured
+> See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full step-by-step including
+> state migration to S3, post-deploy verification, and clean destroy.
+
+## What you get (41 resources)
+
+| Resource | Details |
+|----------|---------|
+| **VPC** | 10.10.0.0/16, public + private subnets (2 AZs), NAT Gateway, Internet Gateway |
+| **VPC Endpoints** | S3 (Gateway), SSM, SSMMessages, ECR API, ECR DKR, CloudWatch Logs (Interface) |
+| **Flow Logs** | VPC Flow Logs → CloudWatch Logs |
+| **CloudTrail** | Multi-region trail, S3 bucket + KMS encryption, Object Lock (364d governance) |
+| **IAM Baseline** | Account alias, password policy (14 chars, 90d expiry), S3 Block Public Access, Access Analyzer, IMDSv2 required |
+| **State Backend** | S3 bucket + KMS key + native lockfile (no DynamoDB) |
 
 ## Stack
 
@@ -83,8 +112,8 @@ blueprints/               # ← Opinionated module compositions
 └── landing-zone-basic/   #    Connects all 4 modules with env defaults
 
 environments/             # ← Per-environment configuration
-├── dev/                  #    terraform.tfvars + backend.hcl
-└── prod/                 #    terraform.tfvars + backend.hcl
+├── dev/                  #    terraform.tfvars.example
+└── prod/                 #    terraform.tfvars.example
 ```
 
 ## Who is this for
@@ -101,17 +130,33 @@ OpenTofu is the open-source fork of Terraform under the MPL 2.0 license. After I
 
 ## Roadmap
 
-- [x] Technical spec approved
-- [ ] **Phase 0** — Validation + Go-to-Market *(active)*
-- [ ] **Phase 1** — Minimum Viable Product *(active)*
-- [ ] Phase 2 — Industrialization *(requires first client)*
-- [ ] Phase 3 — Scale or Pivot *(requires real data)*
+- [x] **Phase 0** — Validation + Go-to-Market ✅
+- [x] **Phase 1** — Minimum Viable Product ✅ *(v0.1.0 released)*
+- [ ] **Phase 2** — Industrialization *(requires first client)* — CI/CD, Checkov, tofu test, terraform-docs
+- [ ] **Phase 3** — Scale or Pivot *(requires real data)*
 
 See [`docs/`](docs/) for full project context, design decisions, and phased roadmap.
 
+## Project status
+
+This is a **pre-1.0 MVP** built and validated by a solo developer. It works (deploy → verify → destroy tested end-to-end), but expect rough edges until Phase 2.
+
+**Known limitations:**
+- Single AWS account (no Organizations)
+- No CI/CD pipeline yet
+- No automated tests
+- Documentation in progress (some sections in Spanish only)
+
 ## Contributing
 
-This project follows [Conventional Commits](https://www.conventionalcommits.org/), uses GitHub Flow branching, and enforces OpenTofu conventions documented in [`docs/`](docs/).
+This project is in early stage. Feedback, issues, and PRs are welcome:
+
+1. Install the pre-push hook: `git config core.hooksPath .githooks`
+2. Create a branch: `docs/`, `fix/`, `chore/`, or `feature/` prefix
+3. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
+4. Open a PR to `main` (direct pushes are blocked by hook + branch protection)
+
+See [`AGENTS.md`](AGENTS.md) for full conventions.
 
 ## License
 
