@@ -26,25 +26,41 @@
 
 ## Architecture
 
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}} }%%
+flowchart LR
+    subgraph STATE["☁️ State Layer"]
+        direction LR
+        S3["S3 Bucket<br/>tfstate + lockfile"] --- KMS["KMS Key<br/>AES-256"]
+    end
+
+    subgraph NET["🌐 Network Layer"]
+        direction TB
+        VPC["VPC<br/>10.X.0.0/16"] --> PUB["Public Subnets<br/>2 AZ · IGW"]
+        VPC --> PRIV["Private Subnets<br/>2 AZ · NAT GW"]
+        VPC --> EP["VPC Endpoints<br/>S3 · SSM · ECR · Logs"]
+        VPC --> FL["Flow Logs<br/>→ CloudWatch Logs"]
+    end
+
+    subgraph SEC["🔒 Security Layer"]
+        direction TB
+        CT["CloudTrail<br/>Multi-region · S3 + KMS"] 
+        IAM["IAM Baseline<br/>Password Policy · IMDSv2"]
+        S3BPA["S3 Block Public Access<br/>All 4 flags = true"]
+        AA["Access Analyzer<br/>Account-level"]
+    end
+
+    subgraph BP["📦 Blueprint"]
+        LZ["landing-zone-basic<br/>tofu apply"]
+    end
+
+    BP --> STATE
+    BP --> NET
+    BP --> SEC
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Landing Zone                      │
-│                                                     │
-│  ┌─────────────┐  ┌─────────────┐                   │
-│  │    VPC      │  │    VPC      │  ...N             │
-│  │   (dev)     │  │  (prod)     │                   │
-│  └─────────────┘  └─────────────┘                   │
-│                                                     │
-│  ┌─────────────────────────────────────────────────┐ │
-│  │  IAM Baseline  ·  CloudTrail  ·  IMDSv2        │ │
-│  │  S3 Block Public Access  ·  Access Analyzer    │ │
-│  └─────────────────────────────────────────────────┘ │
-│                                                     │
-│  ┌─────────────────────────────────────────────────┐ │
-│  │  State: S3 + KMS  (native lockfile, no DynamoDB)│ │
-│  └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-```
+
+> **Layer dependency (bottom-up):** State → Network + Security → Blueprint.  
+> The blueprint composes all modules; each module is independently usable.
 
 ## Quick start
 
