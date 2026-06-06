@@ -16,26 +16,27 @@
 
 ### Infraestructura desplegada
 
-Ningún entorno desplegado en AWS todavía. Todo el código está validado pero no aplicado.
+Deploy end-to-end validado y destroy limpio verificado el 2026-06-06.
+
+| Entorno | Estado | Fecha |
+|---------|--------|-------|
+| dev | ✅ Deploy -> Verificar -> Destroy | 2026-06-06 |
 
 ### Git
 
 - **Branch principal:** `main`
-- **Branch de trabajo:** `main` (PR #8 mergeado, fase 1 completo)
-- **Tags:** `v0.1.0` (pendiente)
-- **Releases:** Ninguno
+- **Tags:** `v0.1.0` (creado)
+- **Releases:** v0.1.0 (creado)
 
 ### Pendiente para cerrar Phase 1
 
 - [x] Merge `feature/phase-1-mvp-complete` → `main`
 - [x] Commitear `.terraform.lock.hcl` (trackeado, fuera de `.gitignore`)
 - [x] Crear `environments/dev/terraform.tfvars.example` y `environments/prod/terraform.tfvars.example`
-- [ ] Deploy de prueba end-to-end en entorno dev
-- [ ] Validar destroy limpio (orden inverso)
+- [x] Deploy de prueba end-to-end en entorno dev
+- [x] Validar destroy limpio (orden inverso)
+- [x] Tag `v0.1.0` y release en GitHub
 
 ### Próximos pasos
 
-1. Tag `v0.1.0` en main
-2. Deploy de prueba en cuenta AWS dev
-3. Validar outputs y verificación post-deploy
-4. Buscar primer cliente (trigger de Phase 2)
+1. Buscar primer cliente (trigger de Phase 2)

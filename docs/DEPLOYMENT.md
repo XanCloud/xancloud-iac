@@ -28,12 +28,19 @@ El state-backend se aplica primero con state local. Después se migra a S3.
 ```bash
 cd modules/state-backend
 
+# Determinar el ARN del caller actual (OBLIGATORIO para allowed_roles)
+CALLER_ARN=$(aws sts get-caller-identity --query Arn --output text)
+echo "Caller ARN: ${CALLER_ARN}"
+
 # Crear terraform.tfvars (NO commitear este archivo)
-cat > terraform.tfvars <<'EOF'
-project     = "xancloud"
-environment = "dev"
-bucket_name = "xancloud-dev-tfstate"
-# allowed_roles = ["arn:aws:iam::123456789012:role/ci-deploy"]
+# ⚠️  CRÍTICO: allowed_roles debe incluir el ARN del caller.
+#    Sin esto, la bucket policy bloqueará al IAM user/role inmediatamente
+#    después del apply y solo el root de la cuenta podrá recuperarlo.
+cat > terraform.tfvars <<EOF
+project       = "xancloud"
+environment   = "dev"
+bucket_name   = "xancloud-dev-tfstate"
+allowed_roles = ["${CALLER_ARN}"]
 EOF
 
 # Init con state local (no hay backend remoto aún)

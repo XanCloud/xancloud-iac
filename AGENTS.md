@@ -212,6 +212,7 @@ These are common mistakes AI assistants make with this codebase:
 - Object Lock requires `object_lock_enabled = true` at bucket creation — cannot be added later.
 - IAM replication policies for KMS-encrypted objects need `kms:Decrypt` on source AND `kms:Encrypt` on destination key.
 - `alltrue()` exists, `all()` does not.
+- **State-backend bootstrap lockout:** The S3 bucket policy in `state-backend` has a `DenyUnauthorizedAccess` statement that only allows `:root` and `allowed_roles`. If `allowed_roles` is empty (default), the deploying IAM user gets locked out the moment the bucket policy is applied. **Always include the caller ARN in `allowed_roles` before the first `tofu apply`.** This is not optional for non-root deployers. See `docs/TROUBLESHOOTING.md` for recovery steps.
 
 ## Dependency Map
 

@@ -39,4 +39,14 @@ Registro de riesgos identificados y medidas de mitigación.
 
 ---
 
+## R6: Lockout del caller IAM por bucket policy del state-backend
+
+- **Impacto**: Severo. El IAM user/role que deploya el state-backend queda bloqueado del bucket S3 inmediatamente después de que `DenyUnauthorizedAccess` se aplica. Las operaciones posteriores (SSE, lifecycle) fallan. Solo recuperable con credenciales root.
+- **Mitigación**:
+  - `allowed_roles` debe incluir el ARN del caller **antes del primer apply**
+  - Documentar este requisito en DEPLOYMENT.md y TROUBLESHOOTING.md
+  - Evaluar en futura iteración: hacer `allowed_roles` required, o cambiar la lógica de `DenyUnauthorizedAccess` para no aplicar deny al caller actual
+
+---
+
 *(Nuevos riesgos se añadirán según avance el proyecto.)*

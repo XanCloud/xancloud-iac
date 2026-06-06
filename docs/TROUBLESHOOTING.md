@@ -164,6 +164,35 @@ aws kms enable-key --key-id <key-id>
 
 ---
 
+## Bootstrap (state-backend)
+
+### Lockout tras aplicar state-backend con IAM user
+
+**Causa:** La bucket policy del state-backend contiene `DenyUnauthorizedAccess` que solo permite acceso al root de la cuenta y a los ARNs listados en `allowed_roles`. Si `allowed_roles` está vacío (default), cualquier IAM user/role queda bloqueado inmediatamente después de aplicar la policy. Las operaciones posteriores (SSE config, lifecycle config, etc.) fallan con `AccessDenied`.
+
+**Solución preventiva (si aún no aplicaste):**
+Siempre incluir el ARN del IAM user/role que ejecuta el deploy en `allowed_roles` del `terraform.tfvars` **antes del primer apply**:
+
+```hcl
+project       = "xancloud"
+environment   = "dev"
+bucket_name   = "xancloud-dev-tfstate-123456789012"
+allowed_roles = ["arn:aws:iam::123456789012:user/IaC-Labs"]   # ← REQUERIDO
+```
+
+**Recuperación (si ya estás bloqueado):**
+Solo el root de la cuenta puede desbloquear. Usar credenciales root (o un rol no bloqueado):
+
+```bash
+aws s3api delete-bucket-policy --bucket xancloud-dev-tfstate-291066412211 --profile root-profile
+```
+
+Luego agregar el ARN del caller a `allowed_roles` y re-aplicar.
+
+**Lección:** `allowed_roles` no es opcional cuando se deploya desde un IAM user/role. Siempen incluirlo. Considerar hacerlo un `required` en futura revisión.
+
+---
+
 ## OpenTofu general
 
 ### `Provider version constraint not satisfied`
