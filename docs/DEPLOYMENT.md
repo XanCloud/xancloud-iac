@@ -17,6 +17,8 @@ Guía paso a paso para bootstrap y deploy de la landing zone.
 
 > En producción, reemplazar wildcards por permisos granulares. Para MVP, un usuario/role con `AdministratorAccess` funciona.
 
+> **Nota sobre el lock file:** `.terraform.lock.hcl` está trackeado en git para garantizar builds reproducibles. No modificarlo manualmente.
+
 ---
 
 ## Paso 1: Bootstrap del State Backend
@@ -46,6 +48,8 @@ tofu apply
 # Guardar los outputs — los necesitas para el siguiente paso
 tofu output -json > /tmp/state-backend-outputs.json
 ```
+
+**¿Por qué no hay un tfvars de ejemplo en `environments/` para state-backend?** Porque el state-backend se despliega con state local y luego se migra a remoto. Es un paso de bootstrap manual. Las variables son pocas y se pasan inline o en un `terraform.tfvars` temporal (ignorado por git).
 
 **Outputs clave:**
 - `bucket_id` → nombre del bucket S3
@@ -82,7 +86,7 @@ Confirmar con `yes` cuando pregunte si deseas migrar el state.
 cd blueprints/landing-zone-basic
 
 # Crear backend config para dev
-cat > backend-dev.hcl <<EOF
+cat > backend-dev.hcl <<'EOF'
 bucket       = "xancloud-dev-tfstate"
 region       = "us-east-1"
 encrypt      = true
@@ -91,15 +95,18 @@ key          = "landing-zone-basic/dev/terraform.tfstate"
 use_lockfile = true
 EOF
 
-# Init con backend remoto
+# Init con backend remoto (usa el lock file del repo para providers)
 tofu init -backend-config=backend-dev.hcl
 
-# Plan con tfvars de dev
-tofu plan -var-file=examples/dev.tfvars
+# Plan con tfvars de dev (usa el example de environments/)
+tofu plan -var-file=../../environments/dev/terraform.tfvars.example
 
-# Aplicar
-tofu apply -var-file=examples/dev.tfvars
+# Aplicar (copiar el example a terraform.tfvars y editarlo primero)
+cp ../../environments/dev/terraform.tfvars.example terraform.tfvars
+# Editar terraform.tfvars con tus valores
+tofu apply
 ```
+> Si prefieres mantener los tfvars por entorno organizados en `environments/`, puedes crear `environments/dev/terraform.tfvars` (ignorado por git) basado en el `.example` y referenciarlo con `-var-file`.
 
 ### Deploy de prod (mismo bucket, diferente key)
 

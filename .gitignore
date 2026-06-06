@@ -4,7 +4,6 @@
 *.tfstate
 *.tfstate.backup
 *.tfplan
-.terraform.lock.hcl
 crash.log
 
 # Override files
@@ -29,6 +28,9 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Environments — tfvars locales con valores de cuenta, nunca commitear
+environments/*/terraform.tfvars
 
 # Scratch / experiments — never in repo
 scratch/

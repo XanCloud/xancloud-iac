@@ -22,7 +22,7 @@ output "backend_config" {
   description = "Backend configuration map for use in other modules' terraform blocks"
   value = {
     bucket       = aws_s3_bucket.state.id
-    region       = data.aws_region.current.name
+    region       = data.aws_region.current.id
     encrypt      = true
     kms_key_id   = aws_kms_key.state.arn
     use_lockfile = true

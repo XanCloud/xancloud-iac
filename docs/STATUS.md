@@ -28,7 +28,8 @@ Ningún entorno desplegado en AWS todavía. Todo el código está validado pero 
 ### Pendiente para cerrar Phase 1
 
 - [x] Merge `feature/phase-1-mvp-complete` → `main`
-- [ ] Commitear `.terraform.lock.hcl` (actualmente en `.gitignore`, debería trackearse para reproducibilidad)
+- [x] Commitear `.terraform.lock.hcl` (trackeado, fuera de `.gitignore`)
+- [x] Crear `environments/dev/terraform.tfvars.example` y `environments/prod/terraform.tfvars.example`
 - [ ] Deploy de prueba end-to-end en entorno dev
 - [ ] Validar destroy limpio (orden inverso)
 

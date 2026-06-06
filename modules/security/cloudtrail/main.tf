@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "kms" {
       effect = "Allow"
       principals {
         type        = "Service"
-        identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+        identifiers = ["logs.${data.aws_region.current.id}.amazonaws.com"]
       }
       actions = [
         "kms:Encrypt*",
@@ -119,12 +119,26 @@ resource "aws_kms_alias" "trail" {
 resource "aws_s3_bucket" "trail" {
   count = local.create_bucket ? 1 : 0
 
-  bucket        = local.bucket_name
-  force_destroy = false
+  bucket              = local.bucket_name
+  force_destroy       = false
+  object_lock_enabled = true
 
   tags = merge(local.common_tags, var.extra_tags, {
     Name = local.bucket_name
   })
+}
+
+resource "aws_s3_bucket_object_lock_configuration" "trail" {
+  count = local.create_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.trail[0].id
+
+  rule {
+    default_retention {
+      mode = var.object_lock_mode
+      days = var.object_lock_retention_days
+    }
+  }
 }
 
 resource "aws_s3_bucket_versioning" "trail" {

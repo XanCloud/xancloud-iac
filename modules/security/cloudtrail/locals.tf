@@ -16,6 +16,6 @@ locals {
   bucket_arn     = local.create_bucket ? aws_s3_bucket.trail[0].arn : "arn:${data.aws_partition.current.partition}:s3:::${local.bucket_name}"
   kms_key_arn    = local.create_kms_key ? aws_kms_key.trail[0].arn : var.kms_key_arn
   log_group_name = "/aws/cloudtrail/${local.name_prefix}"
-  trail_arn      = "arn:${data.aws_partition.current.partition}:cloudtrail:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:trail/${local.trail_name}"
-  log_group_arn  = "arn:${data.aws_partition.current.partition}:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group_name}"
+  trail_arn      = "arn:${data.aws_partition.current.partition}:cloudtrail:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:trail/${local.trail_name}"
+  log_group_arn  = "arn:${data.aws_partition.current.partition}:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group_name}"
 }
