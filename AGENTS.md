@@ -178,6 +178,16 @@ tofu validate          # run from each module or blueprint directory
 
 Both must pass with zero warnings before any commit.
 
+## Pre-push Hook (required)
+
+A pre-push hook blocks direct pushes to `main`. Install it when cloning fresh:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+> The hook lives in `.githooks/pre-push` (tracked in repo). This approach (`core.hooksPath`) ensures everyone gets the same hook. No manual copying needed.
+
 ## Key Architectural Decisions
 
 1. **OpenTofu over Terraform** — MPL 2.0, no vendor lock-in (ADR-001)
@@ -198,7 +208,7 @@ Both must pass with zero warnings before any commit.
 - Never add modules beyond Phase 1 scope without explicit request
 - Never hardcode account IDs, regions, or ARNs
 - Never commit `.tfvars` with real credentials or account-specific values
-- Never push directly to `main`
+- Never push directly to `main` (blocked by pre-push hook + GitHub branch protection)
 
 ## Known LLM Pitfalls
 
