@@ -1,0 +1,27 @@
+# ─── Variables para entorno dev ───────────────────────────────────────────
+# Copia este archivo como terraform.tfvars y ajusta los valores.
+# NO comitees terraform.tfvars — contiene valores específicos de tu cuenta.
+#
+# Uso:
+#   cd blueprints/landing-zone-basic
+#   tofu init -backend-config=examples/backend-dev.hcl   # o tus propios valores
+#   tofu plan -var-file=../../environments/dev/terraform.tfvars
+#   tofu apply -var-file=../../environments/dev/terraform.tfvars
+
+region      = "us-east-1"
+environment = "dev"
+project     = "xancloud"
+
+# Esta cuenta es la unica owner (account-level singletons)
+is_account_owner = true
+account_alias    = "xancloud-dev"
+
+vpcs = {
+  main = {
+    cidr                  = "10.10.0.0/16"
+    azs                   = 2
+    single_nat            = true
+    vpc_endpoints         = ["s3", "ssm", "ssmmessages", "ecr.api", "ecr.dkr", "logs"]
+    flow_logs_destination = "cloudwatch"
+  }
+}

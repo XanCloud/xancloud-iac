@@ -128,3 +128,23 @@ variable "cloudtrail_log_expiration_days" {
   description = "Days before S3 trail logs expire. CIS 3.x baseline requires >= 365."
   default     = 365
 }
+
+variable "cloudtrail_object_lock_mode" {
+  type        = string
+  description = "S3 Object Lock mode for the CloudTrail bucket (GOVERNANCE or COMPLIANCE)"
+  default     = "GOVERNANCE"
+  validation {
+    condition     = contains(["GOVERNANCE", "COMPLIANCE"], var.cloudtrail_object_lock_mode)
+    error_message = "cloudtrail_object_lock_mode must be GOVERNANCE or COMPLIANCE."
+  }
+}
+
+variable "cloudtrail_object_lock_retention_days" {
+  type        = number
+  description = "Default retention days for Object Lock on the CloudTrail S3 bucket"
+  default     = 364
+  validation {
+    condition     = var.cloudtrail_object_lock_retention_days >= 1
+    error_message = "cloudtrail_object_lock_retention_days must be >= 1."
+  }
+}

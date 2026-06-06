@@ -1,0 +1,29 @@
+# ─── Variables para entorno prod ──────────────────────────────────────────
+# Copia este archivo como terraform.tfvars y ajusta los valores.
+# NO comitees terraform.tfvars — contiene valores específicos de tu cuenta.
+#
+# Uso:
+#   cd blueprints/landing-zone-basic
+#   tofu init -backend-config=examples/backend-prod.hcl
+#   tofu plan -var-file=../../environments/prod/terraform.tfvars
+#   tofu apply -var-file=../../environments/prod/terraform.tfvars
+
+region      = "us-east-1"
+environment = "prod"
+project     = "xancloud"
+
+# dev es el account_owner en Phase 1
+is_account_owner = false
+
+vpcs = {
+  main = {
+    cidr                  = "10.20.0.0/16"
+    azs                   = 3
+    single_nat            = false
+    vpc_endpoints         = ["s3", "ssm", "ssmmessages", "ecr.api", "ecr.dkr", "logs", "secretsmanager"]
+    flow_logs_destination = "s3"
+  }
+}
+
+cloudtrail_cloudwatch_logs_enabled = true
+cloudtrail_log_retention_days      = 731

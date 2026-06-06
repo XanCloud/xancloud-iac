@@ -111,6 +111,26 @@ variable "cloudwatch_logs_retention_days" {
   }
 }
 
+variable "object_lock_mode" {
+  type        = string
+  description = "S3 Object Lock mode for the trail bucket. GOVERNANCE allows deletion with s3:BypassGovernanceRetention. COMPLIANCE blocks all deletion during the retention period."
+  default     = "GOVERNANCE"
+  validation {
+    condition     = contains(["GOVERNANCE", "COMPLIANCE"], var.object_lock_mode)
+    error_message = "object_lock_mode must be GOVERNANCE or COMPLIANCE."
+  }
+}
+
+variable "object_lock_retention_days" {
+  type        = number
+  description = "Number of days to retain trail log versions under Object Lock"
+  default     = 364
+  validation {
+    condition     = var.object_lock_retention_days >= 1
+    error_message = "object_lock_retention_days must be >= 1."
+  }
+}
+
 variable "log_transition_to_glacier_days" {
   type        = number
   description = "Number of days before transitioning S3 logs to Glacier"

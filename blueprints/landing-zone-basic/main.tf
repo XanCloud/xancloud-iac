@@ -30,6 +30,8 @@ module "cloudtrail" {
   cloudwatch_logs_enabled        = var.cloudtrail_cloudwatch_logs_enabled
   cloudwatch_logs_retention_days = var.cloudtrail_log_retention_days
   log_expiration_days            = var.cloudtrail_log_expiration_days
+  object_lock_mode               = var.cloudtrail_object_lock_mode
+  object_lock_retention_days     = var.cloudtrail_object_lock_retention_days
 }
 
 # ─── IAM baseline (account-level, singleton via is_account_owner) ─────────────
