@@ -1,4 +1,5 @@
-region      = "us-east-1"
+# ⚠️  Debe coincidir con la región del perfil AWS y del state backend
+region      = "<region>"
 environment = "dev"
 project     = "xancloud"
 

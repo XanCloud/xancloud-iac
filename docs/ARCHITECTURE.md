@@ -92,11 +92,13 @@ La única dependencia real es:
 ## State layout
 
 ```
-S3 bucket: xancloud-dev-tfstate
+S3 bucket: {project}-{environment}-tfstate-{account-id}
 ├── state-backend/terraform.tfstate              (bootstrap, migrado desde local)
 ├── landing-zone-basic/dev/terraform.tfstate      (dev environment)
 └── landing-zone-basic/prod/terraform.tfstate     (prod environment)
 ```
+
+> El nombre del bucket incluye el account ID para garantizar unicidad global. Ejemplo: `xancloud-dev-tfstate-291066412211`.
 
 Cada entorno tiene su propio state file con su propio lock. No comparten state.
 

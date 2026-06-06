@@ -70,11 +70,79 @@ El módulo crea esto automáticamente si no usas BYOK.
 
 ### `Cannot delete S3 bucket: bucket is not empty`
 
-**Causa:** `force_destroy = false` (intencional, protección contra borrado accidental).
+**Causa:** `force_destroy = false` (intencional, protección contra borrado accidental). El bucket tiene objetos actuales, versiones antiguas, o delete markers.
 
-**Solución:** Vaciar el bucket antes de destroy:
+**Solución para CloudTrail bucket (sin Object Lock):**
 ```bash
 aws s3 rm s3://xancloud-dev-cloudtrail-{account_id} --recursive
+```
+
+**Solución para CloudTrail bucket (con Object Lock):**
+El módulo CloudTrail habilita Object Lock en modo GOVERNANCE con 364 días de retención. `aws s3 rm` solo elimina la versión actual. Las versiones retenidas por Object Lock requieren `--bypass-governance-retention`:
+
+```bash
+BUCKET="xancloud-dev-cloudtrail-$(aws sts get-caller-identity --query Account --output text)"
+
+# 1. Eliminar objetos actuales
+aws s3 rm "s3://${BUCKET}" --recursive
+
+# 2. Eliminar versiones (con bypass por Object Lock)
+python3 -c "
+import json, subprocess
+bucket = '$BUCKET'
+cmd = ['aws', 's3api', 'list-object-versions', '--bucket', bucket]
+data = json.loads(subprocess.run(cmd, capture_output=True, text=True).stdout)
+objects = []
+for v in data.get('Versions', []):
+    objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+for v in data.get('DeleteMarkers', []):
+    objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+
+if objects:
+    for i in range(0, len(objects), 1000):
+        batch = objects[i:i+1000]
+        subprocess.run([
+            'aws', 's3api', 'delete-objects', '--bucket', bucket,
+            '--delete', json.dumps({'Objects': batch, 'Quiet': True}),
+            '--bypass-governance-retention'
+        ], check=True)
+    print(f'{len(objects)} objects deleted (with governance bypass)')
+"
+
+# 3. Reintentar destroy
+tofu destroy
+```
+
+**Solución para state bucket (con versioning):**
+El bucket state tiene versioning habilitado pero NO Object Lock. Los state files migrados dejan versiones que bloquean el destroy:
+
+```bash
+BUCKET="xancloud-dev-tfstate-${account_id}"
+
+# Listar y eliminar todas las versiones
+python3 -c "
+import json, subprocess
+bucket = '$BUCKET'
+data = json.loads(subprocess.run(
+    ['aws', 's3api', 'list-object-versions', '--bucket', bucket],
+    capture_output=True, text=True).stdout)
+objects = []
+for v in data.get('Versions', []):
+    objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+for v in data.get('DeleteMarkers', []):
+    objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+if objects:
+    for i in range(0, len(objects), 1000):
+        batch = objects[i:i+1000]
+        subprocess.run(['aws', 's3api', 'delete-objects', '--bucket', bucket,
+            '--delete', json.dumps({'Objects': batch, 'Quiet': True})], check=True)
+    print(f'{len(objects)} versioned objects deleted')
+else:
+    print('No versioned objects')
+"
+
+# Reintentar destroy
+tofu destroy
 ```
 
 ---

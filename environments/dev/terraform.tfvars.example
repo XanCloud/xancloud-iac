@@ -5,10 +5,11 @@
 # Uso:
 #   cd blueprints/landing-zone-basic
 #   tofu init -backend-config=examples/backend-dev.hcl   # o tus propios valores
-#   tofu plan -var-file=../../environments/dev/terraform.tfvars
-#   tofu apply -var-file=../../environments/dev/terraform.tfvars
+#   cp ../../environments/dev/terraform.tfvars.example terraform.tfvars
+#   tofu plan && tofu apply
 
-region      = "us-east-1"
+# ⚠️  La región debe coincidir con la del state backend y el perfil AWS
+region      = "<region>"
 environment = "dev"
 project     = "xancloud"
 

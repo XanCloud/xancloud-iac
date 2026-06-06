@@ -2,7 +2,7 @@
 .terraform/
 .tofu/
 *.tfstate
-*.tfstate.*.backup
+*.tfstate*.backup
 *.tfplan
 crash.log
 

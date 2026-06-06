@@ -19,6 +19,8 @@ Guía paso a paso para bootstrap y deploy de la landing zone.
 
 > **Nota sobre el lock file:** `.terraform.lock.hcl` está trackeado en git para garantizar builds reproducibles. No modificarlo manualmente.
 
+> **Nota sobre la región:** La región del deploy depende del perfil AWS configurado, no de la variable `region` en tfvars. Por ejemplo, si tu perfil apunta a `us-west-2`, todos los recursos se crearán en `us-west-2`. La variable `region` en los tfvars se usa internamente en el bloque `provider "aws"` y DEBE coincidir con la región del perfil. Si no coincide, tofu fallará o creará recursos en una región diferente a la esperada.
+
 ---
 
 ## Paso 1: Bootstrap del State Backend
@@ -65,23 +67,40 @@ tofu output -json > /tmp/state-backend-outputs.json
 
 ### Migrar state local a S3
 
+> ⚠️ **Requerido:** El módulo `state-backend` no tiene un bloque `backend "s3" {}`. Para migrar el state a S3, debes agregarlo temporalmente, migrar, y luego removerlo. El bloque `backend "s3" {}` sin argumentos delega la configuración al archivo `-backend-config`.
+
 ```bash
 # Crear backend config con los valores reales del output
 cat > backend.hcl <<EOF
 bucket       = "$(tofu output -raw bucket_id)"
-region       = "us-east-1"
+region       = "$(tofu output -raw backend_config | jq -r '.region')"
 encrypt      = true
 kms_key_id   = "$(tofu output -raw kms_key_arn)"
 key          = "state-backend/terraform.tfstate"
 use_lockfile = true
 EOF
 
-# Agregar backend block al versions.tf (temporalmente)
-# O usar -backend-config en init
+# 1. Agregar bloque backend a versions.tf temporalmente
+#    (se removerá después de la migración)
+cat >> versions.tf <<'TEOF'
+
+backend "s3" {}
+TEOF
+
+# 2. Migrar state de local a S3
 tofu init -backend-config=backend.hcl -migrate-state
+
+# 3. Remover el bloque backend temporal
+#    El state ahora vive en S3 y tofu lo recuerda
+head -n -3 versions.tf > versions.tf.tmp && mv versions.tf.tmp versions.tf
+
+# 4. Cleanup
+rm -f backend.hcl
 ```
 
-Confirmar con `yes` cuando pregunte si deseas migrar el state.
+Confirmar con `yes` cuando pregunte si deseas migrar el estado.
+
+> **Nota:** tofu recuerda la configuración del backend S3 en `.terraform/`. Mientras exista ese directorio, los comandos `plan/apply/destroy` apuntan a S3. Si eliminas `.terraform/`, tendrás que volver a hacer `tofu init` con `-backend-config=backend.hcl`.
 
 > **Punto de no retorno:** después de la migración, el state local se puede eliminar. El state vive en S3.
 
@@ -92,28 +111,30 @@ Confirmar con `yes` cuando pregunte si deseas migrar el state.
 ```bash
 cd blueprints/landing-zone-basic
 
-# Crear backend config para dev
-cat > backend-dev.hcl <<'EOF'
-bucket       = "xancloud-dev-tfstate"
-region       = "us-east-1"
+# Crear backend config para dev usando los outputs del state-backend
+# (usa los valores reales guardados en /tmp/)
+cat > backend-dev.hcl <<EOF
+bucket       = "$(cat /tmp/state-backend-outputs.json | jq -r '.bucket_id.value')"
+region       = "$(cat /tmp/state-backend-outputs.json | jq -r '.backend_config.value.region')"
 encrypt      = true
-kms_key_id   = "arn:aws:kms:us-east-1:123456789012:key/xxxx-xxxx"
+kms_key_id   = "$(cat /tmp/state-backend-outputs.json | jq -r '.kms_key_arn.value')"
 key          = "landing-zone-basic/dev/terraform.tfstate"
 use_lockfile = true
 EOF
 
-# Init con backend remoto (usa el lock file del repo para providers)
+# Init con backend remoto
 tofu init -backend-config=backend-dev.hcl
+# Si ya existe un .terraform/ con otro backend, usa -reconfigure
+# tofu init -backend-config=backend-dev.hcl -reconfigure
 
-# Plan con tfvars de dev (usa el example de environments/)
-tofu plan -var-file=../../environments/dev/terraform.tfvars.example
-
-# Aplicar (copiar el example a terraform.tfvars y editarlo primero)
+# Crear terraform.tfvars para dev basado en el ejemplo
+# La región debe coincidir con la del state backend
 cp ../../environments/dev/terraform.tfvars.example terraform.tfvars
-# Editar terraform.tfvars con tus valores
+# Editar la región en terraform.tfvars si es necesario
+# Luego:
+tofu plan
 tofu apply
 ```
-> Si prefieres mantener los tfvars por entorno organizados en `environments/`, puedes crear `environments/dev/terraform.tfvars` (ignorado por git) basado en el `.example` y referenciarlo con `-var-file`.
 
 ### Deploy de prod (mismo bucket, diferente key)
 
@@ -164,27 +185,115 @@ aws ec2 get-instance-metadata-defaults --query 'accountLevel'
 
 > Destruir en orden inverso al deploy. Blueprint primero, state-backend al final.
 
+### 1. Destroy landing zone
+
 ```bash
-# 1. Destroy landing zone (prod primero si existe)
 cd blueprints/landing-zone-basic
-tofu init -backend-config=backend-prod.hcl -reconfigure
-tofu destroy -var-file=examples/prod.tfvars
 
-# 2. Destroy landing zone (dev)
+# (Si hay prod, destruirlo primero)
+# tofu init -backend-config=backend-prod.hcl -reconfigure
+# tofu destroy
+
+# Destroy dev
 tofu init -backend-config=backend-dev.hcl -reconfigure
-tofu destroy -var-file=examples/dev.tfvars
-
-# 3. Destroy state backend (migrar state de vuelta a local primero)
-cd modules/state-backend
-# Quitar backend config y reinit con local
-tofu init -migrate-state   # elegir local cuando pregunte
 tofu destroy
 ```
 
-> **CloudTrail S3 bucket:** si tiene objetos (logs), `tofu destroy` fallará porque `force_destroy = false`. Vaciar el bucket manualmente primero:
-> ```bash
-> aws s3 rm s3://xancloud-dev-cloudtrail-{account-id} --recursive
-> ```
+### 2. Limpiar bucket de CloudTrail
+
+El bucket de CloudTrail tiene **Object Lock** habilitado y `force_destroy = false`. Si el destroy falla con `BucketNotEmpty`, hay que vaciarlo manualmente:
+
+```bash
+# Obtener el nombre del bucket desde los outputs del estado
+# o desde la consola AWS
+BUCKET="xancloud-dev-cloudtrail-$(aws sts get-caller-identity --query Account --output text)"
+
+# 2a. Eliminar objetos actuales
+aws s3 rm "s3://${BUCKET}" --recursive
+
+# 2b. Eliminar versiones antiguas y delete markers
+#     (el versioning + Object Lock retiene versiones previas)
+aws s3api list-object-versions --bucket "${BUCKET}" --query 'Versions[].{Key:Key,VersionId:VersionId}' --output json > /tmp/versions.json
+aws s3api list-object-versions --bucket "${BUCKET}" --query 'DeleteMarkers[].{Key:Key,VersionId:VersionId}' --output json > /tmp/delete-markers.json
+
+python3 -c "
+import json, subprocess
+for f in ['/tmp/versions.json', '/tmp/delete-markers.json']:
+    with open(f) as fh:
+        objects = json.load(fh)
+    if not objects:
+        continue
+    print(f'Deleting {len(objects)} objects from {f}...')
+    for i in range(0, len(objects), 1000):
+        batch = objects[i:i+1000]
+        subprocess.run([
+            'aws', 's3api', 'delete-objects',
+            '--bucket', '$BUCKET',
+            '--delete', json.dumps({'Objects': batch, 'Quiet': True}),
+            '--bypass-governance-retention'    # necesario por Object Lock
+        ], check=True)
+print('Done')
+"
+
+# 2c. Reintentar destroy
+tofu init -backend-config=backend-dev.hcl -reconfigure
+tofu destroy
+```
+
+> **Por qué `--bypass-governance-retention`:** El módulo CloudTrail crea el bucket con Object Lock en modo GOVERNANCE y 364 días de retención. El IAM user con permisos de administración puede bypassearlo explícitamente con este flag.
+
+### 3. Destroy state backend
+
+El bucket state contiene los archivos de state versionados (de la migración). Hay que limpiarlos antes de destruir:
+
+```bash
+cd modules/state-backend
+
+# 3a. Remover el bloque backend "s3" {} si existe en versions.tf
+#     (solo si lo agregaste durante el bootstrap)
+
+# 3b. Migrar state de vuelta a local
+tofu init -migrate-state
+# Responder "yes" cuando pregunte si copiar el state a local
+
+# 3c. Listar objetos versionados en el bucket state
+BUCKET="$(tofu output -raw bucket_id 2>/dev/null || echo 'xancloud-dev-tfstate-{account}')"
+aws s3api list-object-versions --bucket "${BUCKET}" --query 'Versions[].{Key:Key,VersionId:VersionId}' --output json > /tmp/state-versions.json
+
+# 3d. Eliminar versiones del bucket (los state files migrados)
+python3 -c "
+import json, subprocess
+with open('/tmp/state-versions.json') as f:
+    objects = json.load(f)
+if objects:
+    print(f'Deleting {len(objects)} versioned state objects...')
+    subprocess.run([
+        'aws', 's3api', 'delete-objects',
+        '--bucket', '$BUCKET',
+        '--delete', json.dumps({'Objects': objects, 'Quiet': True})
+    ], check=True)
+    print('Done')
+else:
+    print('No versioned objects')
+"
+
+# 3e. Destruir state-backend
+tofu destroy
+
+# 3f. Limpiar archivos temporales
+rm -f /tmp/state-backend-outputs.json /tmp/state-versions.json
+```
+
+### Resumen del orden de destroy
+
+```
+1. tofu destroy blueprint (dev → prod)
+2. Vaciar bucket CloudTrail (objetos + versiones con --bypass-governance-retention)
+3. tofu destroy blueprint (reintentar)
+4. tofu init -migrate-state (state-backend → local)
+5. Vaciar bucket state (versiones de state files)
+6. tofu destroy state-backend
+```
 
 ---
 
