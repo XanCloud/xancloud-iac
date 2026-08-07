@@ -209,6 +209,13 @@ git config core.hooksPath .githooks
 - Never hardcode account IDs, regions, or ARNs
 - Never commit `.tfvars` with real credentials or account-specific values
 - Never push directly to `main` (blocked by pre-push hook + GitHub branch protection)
+- Never include AI/assistant attribution (`Co-Authored-By`, "Generated with ...", or similar) in commits, PRs, code, or docs
+
+## Labs and Experiments
+
+When the user says "lab" or "experiment", conventions are relaxed: no mandatory
+tags, naming, or common variables. Labs live exclusively in `scratch/`
+(gitignored), never in `modules/` or `blueprints/`.
 
 ## Known LLM Pitfalls
 
