@@ -130,6 +130,10 @@ blueprints/               # ← Opinionated module compositions
 environments/             # ← Per-environment configuration
 ├── dev/                  #    terraform.tfvars.example
 └── prod/                 #    terraform.tfvars.example
+
+opencode.jsonc            # ← OpenCode config (versioned, shared)
+.opencode/                # ← AI agent team: cep coordinator + specialists,
+                          #    /cep-* commands, cep-standards skill
 ```
 
 ## Who is this for

@@ -209,6 +209,13 @@ git config core.hooksPath .githooks
 - Never hardcode account IDs, regions, or ARNs
 - Never commit `.tfvars` with real credentials or account-specific values
 - Never push directly to `main` (blocked by pre-push hook + GitHub branch protection)
+- Never include AI tool attribution (`Co-Authored-By`, "Generated with ...", or similar) in commits, PRs, code, or docs
+
+## Labs and Experiments
+
+When the user says "lab" or "experiment", conventions are relaxed: no mandatory
+tags, naming, or common variables. Labs live exclusively in `scratch/` (gitignored),
+never in `modules/` or `blueprints/`.
 
 ## Known LLM Pitfalls
 
@@ -223,6 +230,33 @@ These are common mistakes AI assistants make with this codebase:
 - IAM replication policies for KMS-encrypted objects need `kms:Decrypt` on source AND `kms:Encrypt` on destination key.
 - `alltrue()` exists, `all()` does not.
 - **State-backend bootstrap lockout:** The S3 bucket policy in `state-backend` has a `DenyUnauthorizedAccess` statement that only allows `:root` and `allowed_roles`. If `allowed_roles` is empty (default), the deploying IAM user gets locked out the moment the bucket policy is applied. **Always include the caller ARN in `allowed_roles` before the first `tofu apply`.** This is not optional for non-root deployers. See `docs/TROUBLESHOOTING.md` for recovery steps.
+
+## AI Tooling: OpenCode (versioned)
+
+This repository carries its own OpenCode configuration, versioned and shared:
+
+- `opencode.jsonc` — schema-validated config: `default_agent: cep`,
+  `subagent_depth: 1`, `share: disabled`, restrictive base permissions,
+  watcher ignores, remote OpenTofu MCP (`https://mcp.opentofu.org/mcp`).
+- `.opencode/agents/` — `cep` coordinator (primary, no edits, no bash) +
+  specialists: `planner`, `cloud-architect`, `iac-engineer` (includes the
+  IaC debug flow), `software-engineer`, `documentation-engineer`,
+  `reviewer`, `security-reviewer`. Inactive during Phase 1 (not in cep's
+  delegation allowlist): `devops-engineer`, `kubernetes-engineer`.
+- `.opencode/commands/` — deterministic routing: `/cep-plan`,
+  `/cep-architect`, `/cep-iac`, `/cep-debug-iac`, `/cep-review`,
+  `/cep-security-review`, `/cep-code`, `/cep-docs`, `/cep-devops`,
+  `/cep-kubernetes`.
+- `.opencode/skills/cep-standards/` — on-demand standards (architecture,
+  terraform-opentofu, security, documentation, brand-voice). Load only what
+  the task needs; never duplicate AGENTS.md rules there.
+
+Enforced by permissions, not just prompts: `terraform`, `tofu apply/destroy/
+import/state/force-unlock`, `git push`, releases, and AWS writes are denied.
+MCP `opentofu_*` tools are allowed only to `iac-engineer`,
+`cloud-architect`, `reviewer`, `security-reviewer`.
+
+Framework details and parity matrix: `plans/opencode-agent-framework.md`.
 
 ## Dependency Map
 
@@ -266,3 +300,4 @@ When modifying `.tf` files, modules, or blueprints, check if these files need up
 - `docs/ARCHITECTURE.md` — Module dependency map and data flow (Spanish)
 - `docs/TROUBLESHOOTING.md` — Known issues and solutions (Spanish)
 - `docs/STATUS.md` — Current project state (Spanish)
+- `plans/opencode-agent-framework.md` — OpenCode agent framework (Spanish)

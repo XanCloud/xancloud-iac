@@ -12,8 +12,15 @@ xancloud-iac/
 ├── blueprints/                 Composiciones (orquestan módulos)
 │   └── landing-zone-basic/     Landing zone MVP (vpc + cloudtrail + iam-baseline)
 ├── environments/               Configs por entorno (dev, prod)
-└── docs/                       Documentación del proyecto
+├── docs/                       Documentación del proyecto
+├── opencode.jsonc              Config OpenCode (versionada)
+└── .opencode/                  Equipo de agentes: cep + especialistas,
+                                comandos /cep-*, skill cep-standards
 ```
+
+> La capa de agentes OpenCode es tooling del repositorio: no crea recursos
+> AWS ni modifica el mapa de dependencias. Detalle:
+> `plans/opencode-agent-framework.md`.
 
 ## Mapa de dependencias
 

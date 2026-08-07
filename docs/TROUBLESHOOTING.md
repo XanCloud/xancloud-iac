@@ -290,3 +290,41 @@ tofu fmt -check -recursive
 # Corregir automáticamente
 tofu fmt -recursive
 ```
+
+---
+
+## Tooling de agentes (OpenCode)
+
+### Los cambios de configuración no aplican
+
+**Causa:** OpenCode carga `opencode.jsonc`, agentes, comandos y skills una sola vez al arrancar. No hay hot-reload.
+
+**Solución:** Salir y reiniciar OpenCode tras cualquier cambio en `opencode.jsonc` o `.opencode/`.
+
+### `ConfigInvalidError` al arrancar
+
+**Causa:** Clave desconocida o shape inválido en `opencode.jsonc` (OpenCode valida estrictamente contra el schema).
+
+**Solución:**
+1. Validar el archivo contra `https://opencode.ai/config.json`
+2. Si OpenCode no arranca: `OPENCODE_DISABLE_PROJECT_CONFIG=1 opencode` carga solo la config global y permite editar el archivo roto
+
+### El MCP OpenTofu no responde
+
+**Causa:** El servidor es remoto (`https://mcp.opentofu.org/mcp`) — requiere red. Un proxy, VPN o caída del servicio lo deja inalcanzable.
+
+**Solución:**
+1. Verificar reachability:
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}" -X POST https://mcp.opentofu.org/mcp \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/json, text/event-stream" \
+     -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}'
+   ```
+2. Si la política de red/privacidad no lo permite: cambiar a servidor local en `opencode.jsonc` con versión e integridad fijadas (nunca `npx -y` sin versión)
+
+### Un agente no puede usar las tools `opentofu_*`
+
+**Causa:** Restricción intencional. La config base deniega `opentofu_*`; solo `iac-engineer`, `cloud-architect`, `reviewer` y `security-reviewer` tienen allow.
+
+**Solución:** No es un error. Enrutar la tarea al agente autorizado. Para verificar la resolución: `opencode debug agent <nombre>`.

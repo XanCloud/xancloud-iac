@@ -49,4 +49,18 @@ Registro de riesgos identificados y medidas de mitigación.
 
 ---
 
+## R7: Dependencia del MCP OpenTofu remoto
+
+- **Impacto**: Bajo. Si `https://mcp.opentofu.org/mcp` no es alcanzable (red, privacidad, caída del servicio), los agentes pierden verificación de schemas vía MCP.
+- **Mitigación**: El endpoint remoto es el recomendado oficialmente por OpenTofu. Si deja de ser aceptable, cambiar a servidor local con versión e integridad fijadas contra npm y el repositorio oficial (nunca `npx -y` sin versión). Los agentes conservan webfetch a documentación oficial como fallback.
+
+---
+
+## R8: OpenRouter Presets no validados con OpenCode
+
+- **Impacto**: Bajo. El formato `openrouter/@preset/<slug>` no está verificado con OpenCode 1.18.14; fijarlo en agentes podría romper el arranque o el routing de modelos.
+- **Mitigación**: Los agentes no fijan modelo — heredan el activo del usuario. Spike bloqueante documentado en `plans/opencode-agent-framework.md` antes de cualquier adopción. No crear presets remotos sin autorización explícita.
+
+---
+
 *(Nuevos riesgos se añadirán según avance el proyecto.)*

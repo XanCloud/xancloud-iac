@@ -1,8 +1,21 @@
 # Estado actual del proyecto
 
-Última actualización: 2026-06-06
+Última actualización: 2026-08-06
 
 ## Fase activa: 1 — MVP
+
+### Tooling de agentes (OpenCode)
+
+| Componente | Estado |
+|-----------|--------|
+| `opencode.jsonc` + `.opencode/` | Implementado, versionado, validado contra schema (OpenCode 1.18.14) |
+| MCP OpenTofu remoto | Conectado (`https://mcp.opentofu.org/mcp`, v1.0.1) |
+| Routing de modelos | Nativo por agente (`model` en frontmatter, IDs verificados contra catálogo OpenRouter) |
+| OpenRouter Presets | Opcional, no bloqueante (solo aportarían fallbacks y gestión centralizada) |
+| Smoke tests de routing en vivo | Pendientes de reinicio de OpenCode |
+| Retiro legacy (.kilo/, .kilocode/, .claude/) | Pendiente de aprobación explícita |
+
+Detalle y matriz de paridad: `plans/opencode-agent-framework.md`.
 
 ### Código
 

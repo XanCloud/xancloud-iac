@@ -38,13 +38,5 @@ scratch/
 # Cursor (local only, never in public repo)
 .cursor/
 
-# Claude Code — local only (personal config, never in repo)
-.claude/settings.local.json
-.claude/CLAUDE.md
-.claude/CLAUDE.local.md
-.claude/
-
-# KiloCode Local
-.kilocode/
-.kilocodemodes
-.kilo/
+# OpenCode — opencode.jsonc and .opencode/ are VERSIONED (shared project config).
+# OpenCode keeps sessions/state outside the repo; nothing to ignore here.

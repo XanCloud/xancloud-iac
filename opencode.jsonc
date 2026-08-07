@@ -1,0 +1,63 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Project config — versioned, shared. Credentials and model selection stay outside the repo.
+  "share": "disabled",
+  "default_agent": "cep",
+  // cep may delegate to specialists; specialists are leaf agents
+  "subagent_depth": 1,
+  "watcher": {
+    "ignore": [
+      "**/.git/**",
+      "**/.terraform/**",
+      "**/.tofu/**",
+      "**/*.tfstate",
+      "**/*.tfstate.*",
+      "**/*.tfplan",
+      "**/node_modules/**",
+      "**/scratch/**"
+    ]
+  },
+  "mcp": {
+    "opentofu": {
+      "type": "remote",
+      "url": "https://mcp.opentofu.org/mcp",
+      "enabled": true
+    }
+  },
+  // Base permissions: restrictive. Last matching rule wins — catch-all first, exceptions after.
+  "permission": {
+    "edit": "ask",
+    "read": {
+      "*": "allow",
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "**/*.pem": "deny",
+      "**/*.key": "deny",
+      "**/id_rsa*": "deny",
+      "**/id_ed25519*": "deny",
+      "**/*.tfstate": "deny",
+      "**/*.tfstate.*": "deny",
+      "**/.aws/credentials": "deny",
+      "**/credentials": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "terraform": "deny",
+      "terraform *": "deny",
+      "tofu apply*": "deny",
+      "tofu destroy*": "deny",
+      "tofu import*": "deny",
+      "tofu state*": "deny",
+      "tofu force-unlock*": "deny",
+      "git push*": "deny",
+      "gh release create*": "deny",
+      "rm -rf *": "deny",
+      "rm -fr *": "deny",
+      "sudo *": "deny",
+      "aws *": "deny"
+    },
+    "external_directory": "ask",
+    // OpenTofu MCP tools: denied by default, allowed only to authorized roles
+    "opentofu_*": "deny"
+  }
+}
