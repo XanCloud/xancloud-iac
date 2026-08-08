@@ -6,6 +6,8 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 
 ## ADR-001: OpenTofu en lugar de Terraform
 
+> **tl;dr:** OpenTofu ≥ 1.11.0 chosen over Terraform for MPL 2.0 licensing and freedom from HashiCorp BSL vendor lock-in.
+
 - **Contexto**: Necesidad de IaC estable, compatible con ecosistema Terraform, sin dependencia de licencia BSL de HashiCorp.
 - **Decisión**: Usar OpenTofu ≥ 1.11.0 como binario estándar. Comandos vía `tofu`, no `terraform`.
 - **Consecuencias**: Compatibilidad con módulos y providers del ecosistema; lockfile y state con formato estándar. CI y documentación deben referenciar `tofu`.
@@ -13,6 +15,8 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 ---
 
 ## ADR-002: AWS como cloud principal
+
+> **tl;dr:** AWS is the sole cloud for MVP. Multi-cloud deferred to Phase 2+.
 
 - **Contexto**: Proyecto orientado a consultoría AWS; MVP acotado a un proveedor.
 - **Decisión**: AWS como única nube en el MVP. AWS Provider ~> 6.0.
@@ -22,6 +26,8 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 
 ## ADR-003: Estructura modules / blueprints / environments
 
+> **tl;dr:** Three-tier structure: reusable modules, opinionated compositions (blueprints), per-environment roots.
+
 - **Contexto**: Separar módulos reutilizables de composiciones (blueprints) y de instancias por entorno.
 - **Decisión**: `modules/` para módulos atómicos; `blueprints/` para composiciones (p. ej. landing-zone-basic); `environments/{dev,prod}/` para roots por entorno.
 - **Consecuencias**: Claridad en dónde vivirán variables y state por entorno; blueprints llaman a módulos vía source local o registry.
@@ -29,6 +35,8 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 ---
 
 ## ADR-004: State remoto S3 + KMS + lockfile
+
+> **tl;dr:** Remote state on S3 with KMS encryption and native S3 lockfile (OpenTofu ≥ 1.10). No DynamoDB needed.
 
 - **Contexto**: State debe estar cifrado y bloqueado para trabajo en equipo.
 - **Decisión**: Módulo state-backend con S3 + KMS. Locking nativo S3 con `use_lockfile = true` (OpenTofu >= 1.10). Sin DynamoDB.

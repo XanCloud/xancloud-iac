@@ -1,5 +1,6 @@
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
+data "aws_partition" "current" {}
 
 # ─── KMS key for state encryption ─────────────────────────────────────────────
 
@@ -10,7 +11,7 @@ data "aws_iam_policy_document" "kms" {
     effect = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+      identifiers = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
     # tfsec:ignore:aws-iam-no-policy-wildcards — root admin statement required by KMS
     actions   = ["kms:*"]
@@ -147,7 +148,7 @@ data "aws_iam_policy_document" "state_bucket" {
       test     = "StringNotLike"
       variable = "aws:PrincipalArn"
       values = concat(
-        ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"],
+        ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"],
         var.allowed_roles,
       )
     }

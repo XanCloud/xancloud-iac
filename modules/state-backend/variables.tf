@@ -12,7 +12,10 @@ variable "environment" {
 variable "project" {
   type        = string
   description = "Project name used in resource naming and tags"
-  default     = "xancloud"
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{1,20}$", var.project))
+    error_message = "Project must be lowercase alphanumeric with hyphens, 2-21 chars."
+  }
 }
 
 variable "owner" {
