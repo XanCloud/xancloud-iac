@@ -6,6 +6,7 @@ locals {
     ManagedBy   = "opentofu"
     CostCenter  = var.cost_center
   }
+  name_prefix = "${var.project}-${var.environment}"
 
   gateway_endpoints = ["s3", "dynamodb"]
 }

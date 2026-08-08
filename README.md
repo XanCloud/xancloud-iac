@@ -22,7 +22,19 @@
 - **Hours, not months** — A single `tofu apply` deploys a secure AWS foundation with VPC, IAM hardening, CloudTrail, and encrypted state.
 - **OpenTofu-first** — MPL 2.0 license, native state encryption, S3 locking without DynamoDB. No vendor lock-in.
 - **Opinionated defaults** — Every resource is encrypted at rest, tagged, and follows AWS Well-Architected. Zero manual configuration.
-- **Built for LATAM SMBs** — Documentation in Spanish and English. Transparent pricing, compliance-ready modules.
+- **Built for LATAM SMBs** — Project docs in Spanish, module docs in English. Transparent pricing, compliance-ready modules.
+
+## The OpenCore model
+
+This is the **open-source foundation** — a production-grade landing zone skeleton with 4 reusable modules and a composable blueprint. It gives you:
+
+- ✅ A secure, auditable AWS foundation in a single `tofu apply`
+- ✅ Encrypted state, hardened IAM, multi-region CloudTrail, VPC with flow logs
+- ✅ OpenTofu-native, no proprietary lock-in
+
+**Your turn:** Deploy your own resources on top — EKS clusters, RDS databases, Lambda functions, whatever your workload needs. xancloud-iac handles the boring-but-critical infrastructure layer so you focus on application code.
+
+> This repository is the open part of the OpenCore model. Proprietary extensions (multi-account, SSO, advanced security) live in companion repositories for consulting clients.
 
 ## Architecture
 
@@ -54,13 +66,11 @@ flowchart LR
         LZ["landing-zone-basic<br/>tofu apply"]
     end
 
-    BP --> STATE
-    BP --> NET
-    BP --> SEC
+    STATE --> BP
 ```
 
-> **Layer dependency (bottom-up):** State → Network + Security → Blueprint.  
-> The blueprint composes all modules; each module is independently usable.
+> **Dependency:** State Backend (bootstrap first) → Blueprint  
+> The blueprint composes all modules independently. No cross-module dependencies.
 
 ## Quick start
 
@@ -94,7 +104,7 @@ tofu plan && tofu apply
 > See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full step-by-step including
 > state migration to S3, post-deploy verification, and clean destroy.
 
-## What you get (41 resources)
+## What you get
 
 | Resource | Details |
 |----------|---------|
@@ -104,6 +114,21 @@ tofu plan && tofu apply
 | **CloudTrail** | Multi-region trail, S3 bucket + KMS encryption, Object Lock (364d governance) |
 | **IAM Baseline** | Account alias, password policy (14 chars, 90d expiry), S3 Block Public Access, Access Analyzer, IMDSv2 required |
 | **State Backend** | S3 bucket + KMS key + native lockfile (no DynamoDB) |
+
+## 💰 Estimated AWS costs
+
+Infrastructure costs scale with your configuration. Ballpark monthly estimates (us-east-1):
+
+| Resource | Dev (single NAT, 2 AZs) | Prod (per-AZ NAT, 3 AZs) |
+|----------|--------------------------|---------------------------|
+| **NAT Gateway** | ~$33/mo (×1) | ~$99/mo (×3) |
+| **VPC Interface Endpoints** | ~$22/mo (×3) | ~$36/mo (×5) |
+| **KMS keys** (state + trail) | ~$2/mo | ~$2/mo |
+| **CloudTrail** (mgmt events) | ~$5/mo | ~$5/mo |
+| **CloudWatch Logs** | ~$3/mo | ~$5/mo |
+| **Total** | **~$65/mo** | **~$147/mo** |
+
+> Numbers are estimates based on [AWS NAT Gateway pricing](https://aws.amazon.com/vpc/pricing/) at $0.045/hr + $0.045/GB. Use the [AWS Pricing Calculator](https://calculator.aws/) for your specific region and data transfer patterns. Gateway endpoints (S3, DynamoDB) are free.
 
 ## Stack
 
@@ -161,7 +186,7 @@ This is a **pre-1.0 MVP** built and validated by a solo developer. It works (dep
 - Single AWS account (no Organizations)
 - No CI/CD pipeline yet
 - No automated tests
-- Documentation in progress (some sections in Spanish only)
+- Project documentation (deployment guides, troubleshooting, architecture) in Spanish; module documentation in English. English translations of project docs planned for Phase 2.
 
 ## Contributing
 

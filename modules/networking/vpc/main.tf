@@ -14,7 +14,7 @@ resource "aws_vpc" "this" {
   enable_dns_support   = true
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-vpc"
+    Name = "${local.name_prefix}-${each.key}-vpc"
   })
 }
 
@@ -24,7 +24,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this[each.key].id
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-igw"
+    Name = "${local.name_prefix}-${each.key}-igw"
   })
 }
 
@@ -74,7 +74,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.value.vpc_key}-public-${each.value.az}"
+    Name = "${local.name_prefix}-${each.value.vpc_key}-public-${each.value.az}"
     Type = "public"
   })
 }
@@ -98,7 +98,7 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.value.vpc_key}-private-${each.value.az}"
+    Name = "${local.name_prefix}-${each.value.vpc_key}-private-${each.value.az}"
     Type = "private"
   })
 }
@@ -111,7 +111,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-nat-eip"
+    Name = "${local.name_prefix}-${each.key}-nat-eip"
   })
 
   depends_on = [aws_internet_gateway.this]
@@ -129,7 +129,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id = aws_subnet.public[each.key].id
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-nat-gw"
+    Name = "${local.name_prefix}-${each.key}-nat-gw"
   })
 
   depends_on = [aws_internet_gateway.this]
@@ -148,7 +148,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-rtb-public"
+    Name = "${local.name_prefix}-${each.key}-rtb-public"
     Type = "public"
   })
 }
@@ -172,7 +172,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.value.vpc_key}-rtb-private-${each.value.az_idx}"
+    Name = "${local.name_prefix}-${each.value.vpc_key}-rtb-private-${each.value.az_idx}"
     Type = "private"
   })
 }
@@ -210,7 +210,7 @@ resource "aws_route_table_association" "private" {
 resource "aws_security_group" "vpc_endpoints" {
   for_each = var.vpcs
 
-  name        = "${var.project}-${var.environment}-${each.key}-vpc-endpoints"
+  name        = "${local.name_prefix}-${each.key}-vpc-endpoints"
   description = "Security group for VPC interface endpoints"
   vpc_id      = aws_vpc.this[each.key].id
 
@@ -231,7 +231,7 @@ resource "aws_security_group" "vpc_endpoints" {
   }
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-sg-vpc-endpoints"
+    Name = "${local.name_prefix}-${each.key}-sg-vpc-endpoints"
   })
 }
 
@@ -244,7 +244,7 @@ resource "aws_vpc_endpoint" "s3" {
   }
 
   vpc_id       = aws_vpc.this[each.key].id
-  service_name = "com.amazonaws.${data.aws_region.current.id}.s3"
+  service_name = "com.amazonaws.${data.aws_region.current.region}.s3"
 
   route_table_ids = concat(
     [aws_route_table.public[each.key].id],
@@ -253,7 +253,7 @@ resource "aws_vpc_endpoint" "s3" {
   )
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-vpce-s3"
+    Name = "${local.name_prefix}-${each.key}-vpce-s3"
   })
 }
 
@@ -264,7 +264,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   }
 
   vpc_id       = aws_vpc.this[each.key].id
-  service_name = "com.amazonaws.${data.aws_region.current.id}.dynamodb"
+  service_name = "com.amazonaws.${data.aws_region.current.region}.dynamodb"
 
   route_table_ids = concat(
     [aws_route_table.public[each.key].id],
@@ -273,7 +273,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   )
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-vpce-dynamodb"
+    Name = "${local.name_prefix}-${each.key}-vpce-dynamodb"
   })
 }
 
@@ -298,7 +298,7 @@ resource "aws_vpc_endpoint" "interface" {
   for_each = local.interface_endpoints_map
 
   vpc_id            = aws_vpc.this[each.value.vpc_key].id
-  service_name      = "com.amazonaws.${data.aws_region.current.id}.${each.value.service}"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.${each.value.service}"
   vpc_endpoint_type = "Interface"
 
   subnet_ids = [
@@ -311,7 +311,7 @@ resource "aws_vpc_endpoint" "interface" {
   private_dns_enabled = true
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.value.vpc_key}-vpce-${each.value.service}"
+    Name = "${local.name_prefix}-${each.value.vpc_key}-vpce-${each.value.service}"
   })
 }
 
@@ -363,7 +363,7 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
     vpc_key => vpc if vpc.flow_logs_destination == "cloudwatch"
   }
 
-  name              = "/aws/vpc/${var.project}-${var.environment}-${each.key}"
+  name              = "/aws/vpc/${local.name_prefix}-${each.key}"
   retention_in_days = 90
 
   # TODO(phase-2): Add KMS encryption with dedicated key.
@@ -371,7 +371,7 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
   # low-sensitivity operational data. CloudTrail captures access.
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-flow-logs"
+    Name = "${local.name_prefix}-${each.key}-flow-logs"
   })
 }
 
@@ -381,12 +381,12 @@ resource "aws_iam_role" "flow_logs" {
     vpc_key => vpc if vpc.flow_logs_destination == "cloudwatch"
   }
 
-  name = "${var.project}-${var.environment}-${each.key}-flow-logs-role"
+  name = "${local.name_prefix}-${each.key}-flow-logs-role"
 
   assume_role_policy = data.aws_iam_policy_document.flow_logs_assume_role[each.key].json
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-flow-logs-role"
+    Name = "${local.name_prefix}-${each.key}-flow-logs-role"
   })
 }
 
@@ -396,7 +396,7 @@ resource "aws_iam_role_policy" "flow_logs" {
     vpc_key => vpc if vpc.flow_logs_destination == "cloudwatch"
   }
 
-  name = "${var.project}-${var.environment}-${each.key}-flow-logs-policy"
+  name = "${local.name_prefix}-${each.key}-flow-logs-policy"
   role = aws_iam_role.flow_logs[each.key].id
 
   policy = data.aws_iam_policy_document.flow_logs_permissions[each.key].json
@@ -415,7 +415,7 @@ resource "aws_flow_log" "cloudwatch" {
   iam_role_arn         = aws_iam_role.flow_logs[each.key].arn
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-flow-logs"
+    Name = "${local.name_prefix}-${each.key}-flow-logs"
   })
 }
 
@@ -425,10 +425,10 @@ resource "aws_s3_bucket" "flow_logs" {
     vpc_key => vpc if vpc.flow_logs_destination == "s3"
   }
 
-  bucket = "${var.project}-${var.environment}-${each.key}-flow-logs-${data.aws_caller_identity.current.account_id}"
+  bucket = "${local.name_prefix}-${each.key}-flow-logs-${data.aws_caller_identity.current.account_id}"
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-flow-logs"
+    Name = "${local.name_prefix}-${each.key}-flow-logs"
   })
 }
 
@@ -491,6 +491,12 @@ resource "aws_flow_log" "s3" {
   log_destination      = aws_s3_bucket.flow_logs[each.key].arn
 
   tags = merge(local.common_tags, var.extra_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-flow-logs"
+    Name = "${local.name_prefix}-${each.key}-flow-logs"
   })
+
+  depends_on = [
+    aws_s3_bucket_server_side_encryption_configuration.flow_logs,
+    aws_s3_bucket_public_access_block.flow_logs,
+    aws_s3_bucket_lifecycle_configuration.flow_logs,
+  ]
 }

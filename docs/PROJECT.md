@@ -4,7 +4,7 @@
 
 Acelerador de consultoría IaC basado en **OpenTofu** (no Terraform) para AWS. Proporciona módulos reutilizables y un blueprint de landing zone para arrancar entornos seguros y auditable en contextos multi-cuenta y multi-entorno.
 
-## Alcance MVP (v0.2.0)
+## Alcance MVP (v0.1.0)
 
 - **4 módulos**: state-backend, networking/vpc, security/cloudtrail, identity/iam-baseline.
 - **1 blueprint**: landing-zone-basic (orquesta los módulos).
@@ -22,7 +22,7 @@ Acelerador de consultoría IaC basado en **OpenTofu** (no Terraform) para AWS. P
 
 | Fase   | Enfoque                          | Condición                    |
 |--------|-----------------------------------|------------------------------|
-| Phase 0 | Validación + Go-to-Market        | Activa                       |
+| Phase 0 | Validación + Go-to-Market        | Completada ✅                |
 | Phase 1 | MVP (módulos + blueprint)        | Activa                       |
 | Phase 2 | Industrialización (CI/CD, tests) | Requiere primer cliente      |
 | Phase 3 | Escalar o pivotar                 | Requiere datos reales        |
