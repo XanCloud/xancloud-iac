@@ -82,6 +82,8 @@ The module only creates the trail (and optional CW Logs plumbing). Bucket policy
 | `cloudwatch_logs_enabled` | `bool` | `false` | Deliver events to a CloudWatch Log Group |
 | `cloudwatch_logs_retention_days` | `number` | `365` | Retention for the Log Group |
 | `log_transition_to_glacier_days` | `number` | `90` | Days before moving S3 logs to Glacier |
+| `object_lock_mode` | `string` | `"GOVERNANCE"` | Object Lock retention mode: GOVERNANCE or COMPLIANCE |
+| `object_lock_retention_days` | `number` | `364` | Retention period in days for Object Lock |
 | `log_expiration_days` | `number` | `365` | Days before S3 logs expire (>= 365, CIS baseline) |
 
 ## Outputs
@@ -116,4 +118,4 @@ The module only creates the trail (and optional CW Logs plumbing). Bucket policy
 - Cross-account log delivery.
 - CloudTrail Lake.
 
-Revisit in Phase 2 when client demand validates.
+These capabilities are available as private extensions for consulting clients. See [docs/PHASE-2.md](../../docs/PHASE-2.md).

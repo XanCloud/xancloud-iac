@@ -20,9 +20,9 @@ Tool-specific configs (`.claude/`, `.cursor/`, etc.) extend these rules but MUST
 - **IaC:** OpenTofu >= 1.11.0. Binary: `tofu`. NEVER `terraform`.
 - **Provider:** `hashicorp/aws ~> 6.0`
 - **State:** S3 + KMS + native S3 locking (`use_lockfile = true`). No DynamoDB.
-- **CI/CD:** None yet (Phase 2: GitHub Actions + OIDC)
-- **Policy scanning:** None yet (Phase 2: Checkov >= 3.2.x)
-- **Testing:** None yet (Phase 2: `tofu test` + Terratest)
+- **CI/CD:** None (available in private consulting extensions)
+- **Policy scanning:** None (available in private consulting extensions)
+- **Testing:** None (available in private consulting extensions)
 
 ## Languages
 
@@ -41,10 +41,10 @@ modules/{category}/{name}/
 ├── locals.tf        # common_tags, name_prefix, derived values
 ├── main.tf          # resources and data sources
 ├── outputs.tf       # outputs with description
-└── README.md        # manual (no terraform-docs until Phase 2)
+└── README.md        # manual (terraform-docs available in private consulting extensions)
 ```
 
-No `examples/`, no `tests/` per module until Phase 2.
+No `examples/`, no `tests/` per module. Available in private consulting extensions.
 
 ## versions.tf Template
 
@@ -191,7 +191,7 @@ git config core.hooksPath .githooks
 ## Key Architectural Decisions
 
 1. **OpenTofu over Terraform** — MPL 2.0, no vendor lock-in (ADR-001)
-2. **AWS only in MVP** — multi-cloud is Phase 2+ (ADR-002)
+2. **AWS only** — multi-cloud available in private consulting extensions (ADR-002)
 3. **modules/ + blueprints/ + environments/ structure** (ADR-003)
 4. **S3 + KMS + native lockfile, no DynamoDB** (ADR-004)
 5. **Single AWS account** — tags for env separation, no Organizations yet
@@ -244,11 +244,10 @@ landing-zone-basic (blueprint, uses S3 backend via -backend-config)
 
 ## Phase Progression
 
-| Phase | Trigger | Adds |
-|-------|---------|------|
-| 1 (current) | — | 4 modules + 1 blueprint, manual quality gate |
-| 2 | First paying client | CI/CD, Checkov, tofu test, terraform-docs, examples/ |
-| 3 | Real usage data | Scale or pivot decision |
+| Phase | Status | Scope |
+|-------|--------|-------|
+| 1 (current) | Complete | 4 modules + 1 blueprint, manual quality gate |
+| 2+ | Private | CI/CD, Checkov, tests, multi-account — consulting extensions only |
 
 ## Context Docs — Keep in Sync
 
@@ -257,9 +256,13 @@ When modifying `.tf` files, modules, or blueprints, check if these files need up
 | File | Update when |
 |------|------------|
 | `AGENTS.md` (this file) | Modules added/removed, conventions change, dependency map changes |
-| `docs/STATUS.md` | Module status changes, new blockers, items completed |
 | `docs/ARCHITECTURE.md` | Module relationships change, new subnet layouts, new blueprints |
+| `docs/STATUS.md` | Module status changes, new blockers, items completed |
 | `docs/TROUBLESHOOTING.md` | New gotchas discovered during implementation |
+| `docs/DEPLOYMENT.md` | Deploy steps change, new variables, bootstrap procedure changes |
+| `docs/DECISIONS.md` | Architectural decisions change (new ADRs, reversals) |
+| `docs/RISKS.md` | New risks identified, existing risks mitigated, risk scores change |
+| `docs/PROJECT.md` | Scope changes, team changes, project timeline shifts |
 
 **Rule:** If a commit changes module scope, interfaces (variables/outputs), or project structure, context docs MUST be updated in the same commit. A pre-commit hook warns if `.tf` files changed without context doc updates.
 

@@ -16,7 +16,7 @@ Registro de decisiones importantes (ADR-light). Formato: contexto, decisión, co
 
 ## ADR-002: AWS como cloud principal
 
-> **tl;dr:** AWS is the sole cloud for MVP. Multi-cloud deferred to Phase 2+.
+> **tl;dr:** AWS is the sole cloud. Multi-cloud available in private consulting extensions.
 
 - **Contexto**: Proyecto orientado a consultoría AWS; MVP acotado a un proveedor.
 - **Decisión**: AWS como única nube en el MVP. AWS Provider ~> 6.0.

@@ -141,9 +141,10 @@ tofu apply
 ```bash
 # Crear backend config para prod (diferente state key)
 cat > backend-prod.hcl <<EOF
-bucket       = "xancloud-dev-tfstate"
+bucket       = "xancloud-dev-tfstate"  # Reemplazar con el bucket real del state-backend
 region       = "us-east-1"
 encrypt      = true
+# Ajustar bucket, region y kms_key_id con los valores reales del state-backend
 kms_key_id   = "arn:aws:kms:us-east-1:123456789012:key/xxxx-xxxx"
 key          = "landing-zone-basic/prod/terraform.tfstate"
 use_lockfile = true
@@ -153,8 +154,8 @@ EOF
 tofu init -backend-config=backend-prod.hcl -reconfigure
 
 # Plan y apply
-tofu plan -var-file=examples/prod.tfvars
-tofu apply -var-file=examples/prod.tfvars
+tofu plan -var-file=../../environments/prod/terraform.tfvars.example
+tofu apply -var-file=../../environments/prod/terraform.tfvars.example
 ```
 
 ---

@@ -7,7 +7,7 @@ Registro de riesgos identificados y medidas de mitigación.
 ## R1: Dependencia de un solo mantenedor (bus factor = 1)
 
 - **Impacto**: Alto si no hay documentación ni convenciones claras.
-- **Mitigación**: Documentación en `docs/`, convenciones en skills/rules, PR templates y checklist. Fase 2 añade CI que obliga a fmt/validate.
+- **Mitigación**: Documentación en `docs/`, convenciones en skills/rules, PR templates y checklist. La extensión privada de consultoría añade CI que obliga a fmt/validate.
 
 ---
 
@@ -28,14 +28,14 @@ Registro de riesgos identificados y medidas de mitigación.
 ## R4: Secretos en código o en state
 
 - **Impacto**: Compromiso de credenciales o datos sensibles.
-- **Mitigación**: No generar IAM Users; solo roles (OIDC/AssumeRole). Variables sensibles vía env o backend, nunca en .tf ni .tfvars en repo. Pre-commit y CI con detect-private-key; Phase 2 con Checkov.
+- **Mitigación**: No generar IAM Users; solo roles (OIDC/AssumeRole). Variables sensibles vía env o backend, nunca en .tf ni .tfvars en repo. Pre-commit y CI con detect-private-key; La extensión privada incluye Checkov.
 
 ---
 
 ## R5: Alcance MVP insuficiente para primeros clientes
 
 - **Impacto**: Rechazo o retrabajo.
-- **Mitigación**: Phase 0 valida mensaje y alcance; Phase 1 entrega solo 4 módulos + 1 blueprint con criterios de salida claros. Iterar con feedback real antes de Phase 2.
+- **Mitigación**: Phase 0 valida mensaje y alcance; Phase 1 entrega solo 4 módulos + 1 blueprint con criterios de salida claros. Iterar con feedback real antes de considerar extensiones privadas.
 
 ---
 

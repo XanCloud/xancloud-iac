@@ -207,7 +207,7 @@ Convención: dev es el owner, prod tiene `is_account_owner = false`.
 
 **Causa:** Access Analyzer es regional. El módulo lo crea solo en la región del provider.
 
-**Solución:** Esto es una limitación conocida de Phase 1. Phase 2+ agregará fan-out multi-región.
+**Solución:** Esto es una limitación conocida de Phase 1. Las extensiones privadas de consultoría incluyen fan-out multi-región.
 
 ---
 
