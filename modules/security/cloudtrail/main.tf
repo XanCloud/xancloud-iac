@@ -40,33 +40,6 @@ data "aws_iam_policy_document" "kms" {
     }
   }
 
-  # CloudTrail describes key before use
-  statement {
-    sid    = "AllowCloudTrailDescribe"
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["cloudtrail.amazonaws.com"]
-    }
-    actions   = ["kms:DescribeKey"]
-    resources = ["*"]
-  }
-
-  # S3 decrypts objects when readers pull them through the bucket
-  statement {
-    sid    = "AllowS3Decrypt"
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["s3.amazonaws.com"]
-    }
-    actions = [
-      "kms:Decrypt",
-      "kms:GenerateDataKey",
-    ]
-    resources = ["*"]
-  }
-
   # CloudWatch Logs encrypts log group contents (only when CW Logs is enabled)
   dynamic "statement" {
     for_each = var.cloudwatch_logs_enabled ? [1] : []
@@ -259,12 +232,13 @@ data "aws_iam_policy_document" "bucket" {
     }
   }
 
+  # Deny uploads without SSE-KMS from CloudTrail
   statement {
     sid    = "DenyUnencryptedObjectUploads"
     effect = "Deny"
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
     }
     actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.trail[0].arn}/*"]
@@ -272,6 +246,11 @@ data "aws_iam_policy_document" "bucket" {
       test     = "StringNotEquals"
       variable = "s3:x-amz-server-side-encryption"
       values   = ["aws:kms"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceArn"
+      values   = [local.trail_arn]
     }
   }
 }
@@ -366,5 +345,8 @@ resource "aws_cloudtrail" "this" {
     Name = local.trail_name
   })
 
-  depends_on = [aws_s3_bucket_policy.trail]
+  depends_on = [
+    aws_s3_bucket_policy.trail,
+    aws_s3_bucket_public_access_block.trail,
+  ]
 }
