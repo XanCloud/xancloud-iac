@@ -15,14 +15,14 @@
 
 ---
 
-**AWS landing zones take consultancies 3–6 months and $50K–$500K to deliver.** Most SMBs can't afford that. xancloud-iac gives you pre-built modules, production-ready blueprints, and clear defaults so you don't need a dedicated DevOps team to start right.
+**A production-grade AWS landing zone skeleton.** Pre-built OpenTofu modules with secure defaults, encryption everywhere, and clear conventions — deploy in hours, not months. Open source under Apache 2.0.
 
 ## Why xancloud-iac
 
 - **Hours, not months** — A single `tofu apply` deploys a secure AWS foundation with VPC, IAM hardening, CloudTrail, and encrypted state.
 - **OpenTofu-first** — MPL 2.0 license, native state encryption, S3 locking without DynamoDB. No vendor lock-in.
 - **Opinionated defaults** — Every resource is encrypted at rest, tagged, and follows AWS Well-Architected. Zero manual configuration.
-- **Built for LATAM SMBs** — Project docs in Spanish, module docs in English. Transparent pricing, compliance-ready modules.
+- **Built for the community** — Project docs in Spanish, module docs in English. Fork it, adapt it, build on it.
 
 ## The OpenCore model
 
@@ -136,9 +136,6 @@ Infrastructure costs scale with your configuration. Ballpark monthly estimates (
 |-------|------|---------|
 | **IaC** | OpenTofu >= 1.11 | State encryption, S3 native locking, MPL 2.0 |
 | **Cloud** | AWS | Primary target. Largest market share. |
-| **Policy** | Checkov + OPA | Static security scanning (Phase 2+) |
-| **Testing** | tofu test + Terratest | Unit + integration tests (Phase 2+) |
-| **CI/CD** | GitHub Actions | Automated quality gates (Phase 2+) |
 
 ## Project structure
 
@@ -169,24 +166,34 @@ environments/             # ← Per-environment configuration
 
 OpenTofu is the open-source fork of Terraform under the MPL 2.0 license. After IBM's acquisition of HashiCorp and the BSL license change, OpenTofu provides freedom from vendor lock-in, predictable licensing, and features like native state encryption and S3 locking without DynamoDB — making it the better foundation for new projects in 2026.
 
-## Roadmap
+## Model
 
-- [x] **Phase 0** — Validation + Go-to-Market ✅
-- [x] **Phase 1** — Minimum Viable Product ✅ *(v0.1.0 released)*
-- [ ] **Phase 2** — Industrialization *(requires first client)* — CI/CD, Checkov, tofu test, terraform-docs
-- [ ] **Phase 3** — Scale or Pivot *(requires real data)*
+This is the **open foundation** of the OpenCore model. It provides a secure, production-grade landing zone skeleton with reusable modules.
+
+**What's here (open source):**
+- 4 reusable modules + 1 composable blueprint
+- Encrypted state backend, VPC, CloudTrail, IAM hardening
+- Ready to deploy in a single `tofu apply`
+
+**What's private (consulting clients):**
+- Multi-account architecture (AWS Organizations)
+- CI/CD pipelines (GitHub Actions + OIDC)
+- Policy scanning (Checkov/OPA), automated testing
+- SSO (IAM Identity Center), GuardDuty, SecurityHub
+- English translations of project docs
+
+The community is free to fork, adapt, and build on this foundation.
 
 See [`docs/`](docs/) for full project context, design decisions, and phased roadmap.
 
 ## Project status
 
-This is a **pre-1.0 MVP** built and validated by a solo developer. It works (deploy → verify → destroy tested end-to-end), but expect rough edges until Phase 2.
+**This is the open foundation — maintained as-is.** The modules work, the blueprint deploys, and the conventions are documented. Build on top, fork it, or use it as a reference. Private extensions exist for consulting clients; they are not part of this repository.
 
 **Known limitations:**
 - Single AWS account (no Organizations)
-- No CI/CD pipeline yet
-- No automated tests
-- Project documentation (deployment guides, troubleshooting, architecture) in Spanish; module documentation in English. English translations of project docs planned for Phase 2.
+- No CI/CD, no automated tests, no policy scanning
+- Project documentation in Spanish; module documentation in English
 
 ## Contributing
 

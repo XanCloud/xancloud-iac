@@ -109,7 +109,7 @@ For a `/16` VPC with 3 AZs:
 | `cidr` | `string` | VPC CIDR block (RFC 1918, /16 to /32) |
 | `azs` | `number` | Number of AZs (2 or 3) |
 | `single_nat` | `bool` | `true` = 1 shared NAT GW, `false` = 1 NAT GW per AZ |
-| `vpc_endpoints` | `list(string)` | Endpoints to create: `s3`, `dynamodb`, `ssm`, `ecr.api`, `ecr.dkr`, `logs`, `secretsmanager` |
+| `vpc_endpoints` | `list(string)` | Endpoints to create: `s3`, `dynamodb`, `ssm`, `ecr.api`, `ecr.dkr`, `logs`, `cloudwatchlogs`, `secretsmanager`, `ssmmessages`, `ssmcontacts` |
 | `flow_logs_destination` | `string` | `cloudwatch` or `s3` |
 
 ## Outputs

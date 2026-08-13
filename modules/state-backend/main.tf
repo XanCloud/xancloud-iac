@@ -134,6 +134,11 @@ data "aws_iam_policy_document" "state_bucket" {
     }
   }
 
+  # ⚠️  WARNING: If allowed_roles is empty (default=[]), ONLY the account root
+  # has S3 access after this policy is applied. Non-root IAM deployers MUST
+  # include their ARN in allowed_roles BEFORE the first tofu apply.
+  # See docs/TROUBLESHOOTING.md for recovery steps if locked out.
+  #
   # Deny access to anyone outside account root and allowed_roles
   statement {
     sid    = "DenyUnauthorizedAccess"

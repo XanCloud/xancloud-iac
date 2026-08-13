@@ -18,20 +18,25 @@ Acelerador de consultoría IaC basado en **OpenTofu** (no Terraform) para AWS. P
 - **Cumplimiento**: CloudTrail, IAM baseline, S3 block public access, IMDSv2 por defecto.
 - **Portabilidad**: OpenTofu + HCL estándar; sin dependencia de Terraform propietario.
 
-## Fases
+## Modelo
 
-| Fase   | Enfoque                          | Condición                    |
-|--------|-----------------------------------|------------------------------|
-| Phase 0 | Validación + Go-to-Market        | Completada ✅                |
-| Phase 1 | MVP (módulos + blueprint)        | Activa                       |
-| Phase 2 | Industrialización (CI/CD, tests) | Requiere primer cliente      |
-| Phase 3 | Escalar o pivotar                 | Requiere datos reales        |
+Este repositorio es la **base abierta** (OpenCore). Las capacidades avanzadas
+(multi-account, CI/CD, SSO, security scanning) están disponibles como extensiones
+privadas para clientes de consultoría. Ver [PHASE-2.md](PHASE-2.md) para el detalle
+de extensiones.
+
+## Fases completadas
+
+| Fase   | Enfoque                          | Estado    |
+|--------|-----------------------------------|-----------|
+| Phase 0 | Validación + Go-to-Market        | Completada ✅ |
+| Phase 1 | MVP (módulos + blueprint)        | Completada ✅ |
 
 ## Documentación relacionada
 
 - [PHASE-0.md](PHASE-0.md) — Validación y go-to-market.
 - [PHASE-1.md](PHASE-1.md) — MVP y entregables.
-- [PHASE-2.md](PHASE-2.md) — Industrialización.
-- [PHASE-3.md](PHASE-3.md) — Escala o pivote.
+- [PHASE-2.md](PHASE-2.md) — Capacidades privadas (consultoría).
+- [PHASE-3.md](PHASE-3.md) — Futuro.
 - [DECISIONS.md](DECISIONS.md) — Decisiones de arquitectura y proceso.
 - [RISKS.md](RISKS.md) — Riesgos y mitigaciones.

@@ -235,6 +235,20 @@ resource "aws_security_group" "vpc_endpoints" {
   })
 }
 
+# ─── Default Security Group Restriction (CIS) ─────────────────────────────────
+
+resource "aws_default_security_group" "this" {
+  for_each = var.vpcs
+
+  vpc_id = aws_vpc.this[each.key].id
+
+  revoke_rules_on_delete = true
+
+  tags = merge(local.common_tags, var.extra_tags, {
+    Name = "${local.name_prefix}-${each.key}-default-sg"
+  })
+}
+
 # ─── Gateway VPC Endpoints (S3, DynamoDB) ──────────────────────────────────────
 
 resource "aws_vpc_endpoint" "s3" {
@@ -479,6 +493,101 @@ resource "aws_s3_bucket_lifecycle_configuration" "flow_logs" {
   }
 }
 
+# ─── Flow Logs S3 bucket policy ──────────────────────────────────────────────
+
+data "aws_iam_policy_document" "flow_logs_bucket" {
+  for_each = {
+    for vpc_key, vpc in var.vpcs :
+    vpc_key => vpc if vpc.flow_logs_destination == "s3"
+  }
+
+  statement {
+    sid    = "AWSLogDeliveryWrite"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    actions = [
+      "s3:PutObject",
+    ]
+    resources = [
+      "${aws_s3_bucket.flow_logs[each.key].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    }
+  }
+
+  statement {
+    sid    = "AWSLogDeliveryAclCheck"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    actions = [
+      "s3:GetBucketAcl",
+    ]
+    resources = [
+      aws_s3_bucket.flow_logs[each.key].arn,
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    }
+  }
+
+  statement {
+    sid    = "DenyNonTLS"
+    effect = "Deny"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.flow_logs[each.key].arn,
+      "${aws_s3_bucket.flow_logs[each.key].arn}/*",
+    ]
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "flow_logs" {
+  for_each = {
+    for vpc_key, vpc in var.vpcs :
+    vpc_key => vpc if vpc.flow_logs_destination == "s3"
+  }
+
+  bucket = aws_s3_bucket.flow_logs[each.key].id
+  policy = data.aws_iam_policy_document.flow_logs_bucket[each.key].json
+
+  depends_on = [aws_s3_bucket_public_access_block.flow_logs]
+}
+
 resource "aws_flow_log" "s3" {
   for_each = {
     for vpc_key, vpc in var.vpcs :
@@ -498,5 +607,6 @@ resource "aws_flow_log" "s3" {
     aws_s3_bucket_server_side_encryption_configuration.flow_logs,
     aws_s3_bucket_public_access_block.flow_logs,
     aws_s3_bucket_lifecycle_configuration.flow_logs,
+    aws_s3_bucket_policy.flow_logs,
   ]
 }

@@ -1,6 +1,6 @@
 # IAM Baseline
 
-Account-level security hardening for a single AWS account. No IAM users or roles — that belongs to blueprint composition or Phase 2.
+Account-level security hardening for a single AWS account. No IAM users or roles — that belongs to blueprint composition or private consulting extensions.
 
 Five controls, all on by default:
 
@@ -122,9 +122,9 @@ module "iam_baseline" {
 
 **Account-level singletons.** S3 Block Public Access, the password policy, the account alias, and the EC2 instance metadata defaults are one-per-account (the last is one-per-region). Instantiate this module **exactly once per account** from whichever environment owns it — typically directly from `environments/<env>/`, not from a sub-module that can be invoked multiple times.
 
-**IAM Access Analyzer is regional.** One analyzer per region per scope. This module creates one in the provider's configured region. Multi-region coverage via provider aliases is out of scope for Phase 1.
+**IAM Access Analyzer is regional.** One analyzer per region per scope. This module creates one in the provider's configured region. Multi-region coverage via provider aliases is available in private consulting extensions.
 
-**IMDSv2 defaults are regional.** Same caveat. Multi-region fan-out via provider aliases lands in Phase 2.
+**IMDSv2 defaults are regional.** Same caveat. Multi-region fan-out via provider aliases is available in private consulting extensions.
 
 **Access Analyzer with external findings is free.** Default-on is cheap signal — it flags resources shared outside the account without touching compute cost.
 
@@ -147,10 +147,10 @@ Re-apply after import produces no drift if defaults match the existing state.
 
 ## Out of scope (Phase 1)
 
-- IAM users, groups, and roles (blueprint composition or Phase 2).
+- IAM users, groups, and roles (blueprint composition or private consulting extensions).
 - Organization-scoped Access Analyzer and Organization trail (single-account MVP).
 - Multi-region Access Analyzer or IMDSv2 fan-out (requires provider aliases).
 - SCPs and IAM permission boundaries.
 - AWS Config, Security Hub, GuardDuty.
 
-Revisit in Phase 2 when client demand validates.
+Additional capabilities available in private consulting extensions.

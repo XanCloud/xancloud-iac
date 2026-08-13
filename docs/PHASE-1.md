@@ -20,7 +20,7 @@ Entregar un conjunto mínimo de módulos OpenTofu y un blueprint de landing zone
 - Código HCL en cada módulo (variables tipadas, descripciones, validación).
 - Blueprint que invoque los módulos y permita `tofu init` / `tofu plan` / `tofu apply`.
 - Documentación mínima por módulo (README, inputs/outputs).
-- Sin tests automatizados ni pipelines en esta fase (Phase 2).
+- Sin tests automatizados ni pipelines en esta fase (disponibles en extensiones privadas).
 
 ## Criterios de salida
 

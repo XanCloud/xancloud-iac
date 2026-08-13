@@ -134,10 +134,10 @@ Ejemplo prod (3 AZs, NAT per-AZ):
 └── 10.20.5.0/24  private-us-east-1c  → NAT en us-east-1c
 ```
 
-## Scope Phase 1 vs Phase 2+
+## Scope actual vs capacidades privadas
 
-| Capacidad | Phase 1 | Phase 2+ |
-|-----------|---------|----------|
+| Capacidad | Repo abierto | Extensión privada |
+|-----------|-------------|-------------------|
 | Cuenta AWS | Single | Multi-account (Organizations) |
 | VPC connectivity | Aisladas | Transit Gateway, peering |
 | IP | IPv4 only | IPv6 dual-stack |

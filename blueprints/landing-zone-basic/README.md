@@ -43,15 +43,23 @@ Two environments with `is_account_owner = true` in the same account will fight o
 ```bash
 cd blueprints/landing-zone-basic
 
-# Copy and fill in real values for <account-id> and <kms-key-id>
+# 1. Copy and edit the backend config with your state-backend values
 cp examples/backend-dev.hcl backend-dev.hcl
+# Edit backend-dev.hcl: replace <account-id> and <kms-key-id> with real values
 
+# 2. Copy and edit the tfvars for your environment
+cp examples/dev.tfvars dev.tfvars
+# Edit dev.tfvars: set region to match your AWS profile
+
+# 3. Init, plan, apply
 tofu init  -backend-config=backend-dev.hcl
-tofu plan  -var-file=examples/dev.tfvars
-tofu apply -var-file=examples/dev.tfvars
+tofu plan  -var-file=dev.tfvars
+tofu apply -var-file=dev.tfvars
 ```
 
-For prod, repeat with `backend-prod.hcl` and `prod.tfvars`. The prod state lives at a different `key` under the same S3 bucket.
+For prod, repeat with `examples/backend-prod.hcl` and `examples/prod.tfvars`. The prod state lives at a different `key` under the same S3 bucket.
+
+> See [`docs/DEPLOYMENT.md`](../../docs/DEPLOYMENT.md) for the full step-by-step including state backend bootstrap, state migration to S3, post-deploy verification, and clean destroy.
 
 ## Usage examples
 
@@ -146,4 +154,4 @@ cloudtrail_log_retention_days      = 731
 - Transit Gateway, VPC peering, IPv6.
 - Cross-region resource fan-out (Access Analyzer, IMDSv2 defaults stay in provider region).
 
-Revisit in Phase 2 when client demand validates.
+These capabilities are available as private extensions for consulting clients. See [docs/PHASE-2.md](../../docs/PHASE-2.md).
